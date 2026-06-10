@@ -957,6 +957,7 @@ function showScreen(screen, direction) {
   currentScreen = screen;
   game.phase = screen;
   updateBallButtons();
+  updateRoleIndicator();
 }
 
 function resetGame() {

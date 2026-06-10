@@ -522,6 +522,21 @@ describe('updateRoleIndicator', function () {
     updateRoleIndicator();
     expect(el.classList.contains('idle')).toBe(true);
   });
+
+  test('goes idle when leaving play screen', function () {
+    game.phase = 'play';
+    game.userRole = 'bat';
+    game.currentInnings = { battingTeam: 'user' };
+    updateRoleIndicator();
+    expect(el.classList.contains('idle')).toBe(false);
+    expect(el.textContent).toContain('BATTING');
+    game.phase = 'menu';
+    game.userRole = null;
+    game.currentInnings = null;
+    updateRoleIndicator();
+    expect(el.classList.contains('idle')).toBe(true);
+    expect(el.textContent).toBe('');
+  });
 });
 
 describe('text selection disabled', function () {
