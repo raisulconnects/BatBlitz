@@ -11,7 +11,9 @@ var {
   triggerCentury,
   triggerHalfCentury,
   triggerWicketGlow,
+  triggerInningsEnd,
   updateRoleIndicator,
+  showHowToPlay,
   game,
 } = require('./script');
 var fs = require('fs');
@@ -447,6 +449,65 @@ describe('triggerWicketGlow', function () {
   });
 });
 
+describe('triggerInningsEnd', function () {
+  var overlay;
+  var textEl;
+
+  beforeAll(function () {
+    overlay = document.getElementById('milestone-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'milestone-overlay';
+      overlay.className = 'milestone-overlay hidden';
+      document.body.appendChild(overlay);
+    }
+    textEl = document.getElementById('milestone-text');
+    if (!textEl) {
+      textEl = document.createElement('div');
+      textEl.id = 'milestone-text';
+      textEl.className = 'milestone-text';
+      document.body.appendChild(textEl);
+    }
+  });
+
+  afterAll(function () {
+    if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    if (textEl && textEl.parentNode) textEl.parentNode.removeChild(textEl);
+  });
+
+  beforeEach(function () {
+    overlay.className = 'milestone-overlay hidden';
+    overlay.style.background = '';
+    textEl.className = 'milestone-text';
+    textEl.textContent = '';
+  });
+
+  test('is a function', function () {
+    expect(typeof triggerInningsEnd).toBe('function');
+  });
+
+  test('shows overlay and sets innings end text', function () {
+    triggerInningsEnd();
+    expect(overlay.classList.contains('hidden')).toBe(false);
+    expect(textEl.textContent).toContain('OUT');
+    expect(textEl.classList.contains('innings-end-text')).toBe(true);
+  });
+
+  test('hides overlay after timeout', function () {
+    jest.useFakeTimers();
+    triggerInningsEnd();
+    expect(overlay.classList.contains('hidden')).toBe(false);
+    jest.advanceTimersByTime(2200);
+    expect(overlay.classList.contains('hidden')).toBe(true);
+    jest.useRealTimers();
+  });
+
+  test('sets red background', function () {
+    triggerInningsEnd();
+    expect(overlay.style.background).toContain('rgba(255,0,0');
+  });
+});
+
 describe('game milestones', function () {
   test('initializes with fifty and hundred as false', function () {
     expect(game.milestones).toBeDefined();
@@ -548,5 +609,101 @@ describe('text selection disabled', function () {
   test('style.css sets -webkit-user-select none on universal selector', function () {
     var cssText = fs.readFileSync(path.resolve(__dirname, 'style.css'), 'utf8');
     expect(cssText).toContain('-webkit-user-select: none');
+  });
+});
+
+describe('showHowToPlay', function () {
+  var modalOverlay;
+  var modalHeading;
+  var modalBody;
+  var modalBtn;
+
+  beforeAll(function () {
+    global.playButtonSound = function () {};
+    modalOverlay = document.createElement('div');
+    modalOverlay.id = 'event-modal';
+    modalOverlay.className = 'modal-overlay hidden';
+    document.body.appendChild(modalOverlay);
+
+    var modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    modalOverlay.appendChild(modalContent);
+
+    modalHeading = document.createElement('h2');
+    modalHeading.id = 'modal-heading';
+    modalContent.appendChild(modalHeading);
+
+    modalBody = document.createElement('div');
+    modalBody.id = 'modal-body';
+    modalContent.appendChild(modalBody);
+
+    modalBtn = document.createElement('button');
+    modalBtn.id = 'modal-btn';
+    modalContent.appendChild(modalBtn);
+  });
+
+  afterAll(function () {
+    if (modalOverlay && modalOverlay.parentNode) modalOverlay.parentNode.removeChild(modalOverlay);
+  });
+
+  beforeEach(function () {
+    modalOverlay.classList.add('hidden');
+    modalHeading.textContent = '';
+    modalBody.innerHTML = '';
+  });
+
+  test('is a function', function () {
+    expect(typeof showHowToPlay).toBe('function');
+  });
+
+  test('opens modal with how to play heading', function () {
+    showHowToPlay();
+    expect(modalOverlay.classList.contains('hidden')).toBe(false);
+    expect(modalHeading.textContent).toContain('HOW TO PLAY');
+  });
+
+  test('modal body contains game mode sections', function () {
+    showHowToPlay();
+    expect(modalBody.innerHTML).toContain('QUICK');
+    expect(modalBody.innerHTML).toContain('T20');
+    expect(modalBody.innerHTML).toContain('TEST');
+  });
+
+  test('modal body contains how to play header', function () {
+    showHowToPlay();
+    expect(modalBody.innerHTML).toContain('HOW TO PLAY');
+  });
+
+  test('modal body mentions batting and bowling', function () {
+    showHowToPlay();
+    expect(modalBody.innerHTML).toContain('Batting');
+    expect(modalBody.innerHTML).toContain('Bowling');
+  });
+
+  test('modal body explains the core mechanic', function () {
+    showHowToPlay();
+    expect(modalBody.innerHTML).toContain('Pick a number');
+  });
+
+  test('modal body contains controls', function () {
+    showHowToPlay();
+    expect(modalBody.innerHTML).toContain('CONTROLS');
+  });
+
+  test('modal has GOT IT button', function () {
+    showHowToPlay();
+    expect(modalBtn.textContent).toBe('GOT IT');
+  });
+});
+
+describe('how to play button in HTML', function () {
+  test('index.html contains how to play button', function () {
+    var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+    expect(html).toContain('HOW TO PLAY');
+  });
+
+  test('how to play button calls showHowToPlay', function () {
+    var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+    expect(html).toContain('onclick="showHowToPlay()"');
   });
 });

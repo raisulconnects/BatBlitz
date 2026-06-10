@@ -110,6 +110,14 @@ body {
     0 0 40px rgba(100, 200, 255, 0.3);
 }
 
+.milestone-text.innings-end-text {
+  color: #ff3333;
+  text-shadow:
+    0 0 30px rgba(255, 51, 51, 0.8),
+    0 0 60px rgba(255, 51, 51, 0.4),
+    0 0 100px rgba(255, 51, 51, 0.2);
+}
+
 /* Wicket red glassmorphism */
 .scoreboard.wicket-glow {
   background: rgba(30, 10, 10, 0.5) !important;
@@ -1084,6 +1092,126 @@ p, .screen-desc {
   left: 0;
   color: #39ff14;
 }
+
+/* How to play modal */
+.howto-content {
+  text-align: left;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.howto-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.howto-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.howto-content::-webkit-scrollbar-thumb {
+  background: rgba(57, 255, 20, 0.2);
+  border-radius: 2px;
+}
+
+.howto-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.howto-section:last-child {
+  margin-bottom: 0;
+}
+
+.howto-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.65rem;
+  color: #39ff14;
+  letter-spacing: 1px;
+}
+
+.howto-section-header .howto-icon {
+  font-size: 1.3rem;
+}
+
+.howto-modes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.howto-mode-card {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 0.6rem 0.4rem;
+  text-align: center;
+}
+
+.howto-mode-card .howto-mode-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.howto-mode-card .howto-mode-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  color: #c8d6c8;
+  margin-bottom: 0.25rem;
+}
+
+.howto-mode-card .howto-mode-desc {
+  font-size: 0.85rem;
+  color: #556655;
+  line-height: 1.4;
+}
+
+.howto-mode-card[data-mode="quick"] { border-color: rgba(57, 255, 20, 0.15); }
+.howto-mode-card[data-mode="t20"] { border-color: rgba(255, 215, 0, 0.15); }
+.howto-mode-card[data-mode="test"] { border-color: rgba(255, 107, 107, 0.15); }
+
+.howto-mode-card[data-mode="quick"] .howto-mode-name { color: #39ff14; }
+.howto-mode-card[data-mode="t20"] .howto-mode-name { color: #ffd700; }
+.howto-mode-card[data-mode="test"] .howto-mode-name { color: #ff6b6b; }
+
+.howto-rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  font-size: 0.95rem;
+  color: #8a9a8a;
+  line-height: 1.6;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.howto-rule:last-child {
+  border-bottom: none;
+}
+
+.howto-rule-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  width: 1.3rem;
+  text-align: center;
+  margin-top: 0.15rem;
+}
+
+.howto-highlight {
+  color: #c8d6c8;
+  font-weight: bold;
+}
+
+.howto-highlight.green { color: #39ff14; }
+.howto-highlight.red { color: #ff6b6b; }
+.howto-highlight.gold { color: #ffd700; }
 
 #modal-btn-cancel {
   font-family: 'Press Start 2P', monospace;

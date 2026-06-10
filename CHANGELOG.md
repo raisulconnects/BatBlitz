@@ -2,6 +2,28 @@
 
 All notable changes to BatBlitz are documented here.
 
+## Version 1.4.0
+
+- Innings end red overlay effect — radial red gradient full-screen overlay, 'OUT!' text with GSAP bounce-in, wicket confetti burst, strong screen shake, chase sound. Game phase set to 'transition' to disable buttons during the effect, modal appears after 1.2s delay.
+
+## Version 1.3.0
+
+- How to Play modal — comprehensive game guide with icons: game modes (Quick/T20/Test), batting and bowling instructions, match flow explanation, keyboard controls. Launched from new menu button.
+- Role indicator now clears correctly when leaving play screen — calls updateRoleIndicator() from showScreen() so badge resets on any screen transition
+
+## Version 1.2.0
+
+- Role indicator badge in header — shows '🏏 BATTING' (green) or '⚾ BOWLING' (red) next to BatBlitz title, updates with GSAP bounce animation on role change
+- Status display simplified — removed 'YOU ARE BATTING/BOWLING' from status area since header badge now shows the role
+- Text selection disabled globally — user-select: none applied to all elements for cleaner UI
+
+## Version 1.1.0
+
+- Century milestone effect — golden radial gradient full-screen overlay, 'CENTURY!' text with GSAP bounce, golden confetti cascade, strong screen shake
+- Half-century milestone effect — blue/silver radial gradient overlay, 'FIFTY!' text with GSAP bounce, blue confetti burst, moderate screen shake
+- Wicket glassmorphism effect — red glass overlay on scoreboard with pulsing shadow and border highlight, auto-fades after 800ms
+- Milestone tracking — game.milestones object prevents repeated triggering of fifty/hundred celebrations
+
 ## Version 1.0.0
 
 - Ball log panel no longer shows duplicate empty message when entries exist

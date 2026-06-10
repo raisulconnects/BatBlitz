@@ -1,5 +1,18 @@
 [
   {
+    "version": "1.4.0",
+    "entries": [
+      "Innings end red overlay effect — radial red gradient full-screen overlay, 'OUT!' text with GSAP bounce-in, wicket confetti burst, strong screen shake, chase sound. Game phase set to 'transition' to disable buttons during the effect, modal appears after 1.2s delay."
+    ]
+  },
+  {
+    "version": "1.3.0",
+    "entries": [
+      "How to Play modal — comprehensive game guide with icons: game modes (Quick/T20/Test), batting and bowling instructions, match flow explanation, keyboard controls. Launched from new menu button.",
+      "Role indicator now clears correctly when leaving play screen — calls updateRoleIndicator() from showScreen() so badge resets on any screen transition"
+    ]
+  },
+  {
     "version": "1.2.0",
     "entries": [
       "Role indicator badge in header — shows '🏏 BATTING' (green) or '⚾ BOWLING' (red) next to BatBlitz title, updates with GSAP bounce animation on role change",

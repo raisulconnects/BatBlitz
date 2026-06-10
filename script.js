@@ -283,6 +283,28 @@ function triggerWicketGlow() {
   }, 800);
 }
 
+function triggerInningsEnd() {
+  var overlay = document.getElementById('milestone-overlay');
+  var textEl = document.getElementById('milestone-text');
+  if (!overlay || !textEl) return;
+  textEl.textContent = '🔥 OUT!';
+  textEl.className = 'milestone-text innings-end-text';
+  overlay.className = 'milestone-overlay';
+  overlay.style.background = 'radial-gradient(circle at center, rgba(255,0,0,0.45) 0%, rgba(200,0,0,0.15) 35%, transparent 70%)';
+  if (soundEnabled && typeof playChaseSound === 'function') playChaseSound();
+  overlay.classList.remove('hidden');
+  if (gsapReady) {
+    gsap.fromTo(overlay, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.45, ease: 'power3.out' });
+    gsap.fromTo(textEl, { opacity: 0, scale: 0.3, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: 0.6, delay: 0.15, ease: 'back.out(2.5)' });
+    gsap.to('#app', { x: '+=8', repeat: 7, yoyo: true, duration: 0.04, ease: 'power2.inOut' });
+  }
+  triggerParticles('wicket');
+  setTimeout(function () {
+    overlay.classList.add('hidden');
+    if (gsapReady) gsap.set(overlay, { clearProps: 'all' });
+  }, 2200);
+}
+
 function triggerParticles(type) {
   if (typeof confetti !== 'function') return;
   if (type === 'six') {
@@ -394,6 +416,49 @@ function showModeSelect() {
 function showAbout() {
   playButtonSound();
   showScreen('about', 'left');
+}
+
+function showHowToPlay() {
+  playButtonSound();
+  showModal(
+    '📖 HOW TO PLAY',
+    '<div class="howto-content">' +
+      '<div class="howto-section">' +
+        '<div class="howto-section-header"><span class="howto-icon">🎯</span> GAME MODES</div>' +
+        '<div class="howto-modes">' +
+          '<div class="howto-mode-card" data-mode="quick">' +
+            '<div class="howto-mode-icon">⚡</div>' +
+            '<div class="howto-mode-name">QUICK</div>' +
+            '<div class="howto-mode-desc">1 wicket · unlimited overs</div>' +
+          '</div>' +
+          '<div class="howto-mode-card" data-mode="t20">' +
+            '<div class="howto-mode-icon">🏏</div>' +
+            '<div class="howto-mode-name">T20</div>' +
+            '<div class="howto-mode-desc">10 wickets · 20 overs</div>' +
+          '</div>' +
+          '<div class="howto-mode-card" data-mode="test">' +
+            '<div class="howto-mode-icon">🏆</div>' +
+            '<div class="howto-mode-name">TEST</div>' +
+            '<div class="howto-mode-desc">10 wickets · unlimited</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="howto-section">' +
+        '<div class="howto-section-header"><span class="howto-icon">🎮</span> HOW TO PLAY</div>' +
+        '<div class="howto-rule"><span class="howto-rule-icon">🎯</span>Pick a number <span class="howto-highlight">1–6</span>, AI picks one too</div>' +
+        '<div class="howto-rule"><span class="howto-rule-icon">🏏</span><span class="howto-highlight green">Batting:</span> different numbers = <span class="howto-highlight green">run</span> (difference), same = <span class="howto-highlight red">OUT</span></div>' +
+        '<div class="howto-rule"><span class="howto-rule-icon">⚾</span><span class="howto-highlight red">Bowling:</span> different numbers = run to batter, same = <span class="howto-highlight red">WICKET!</span></div>' +
+        '<div class="howto-rule"><span class="howto-rule-icon">🔄</span>Two innings per match — bat to <span class="howto-highlight gold">set a target</span>, then bowl to <span class="howto-highlight gold">defend it</span></div>' +
+        '<div class="howto-rule"><span class="howto-rule-icon">🏆</span>Chase the target in innings 2 to win, or take all wickets to win</div>' +
+      '</div>' +
+      '<div class="howto-section">' +
+        '<div class="howto-section-header"><span class="howto-icon">⌨️</span> CONTROLS</div>' +
+        '<div class="howto-rule"><span class="howto-rule-icon">1–6</span>Press a number key to play a ball</div>' +
+        '<div class="howto-rule"><span class="howto-rule-icon">⎋</span>Press <span class="howto-highlight">ESC</span> to close modals</div>' +
+      '</div>' +
+    '</div>',
+    'GOT IT'
+  );
 }
 
 function showChangelog() {
@@ -630,38 +695,49 @@ function playBall(userPick) {
 
   if (game.currentInnings === game.innings1) {
     if (shouldEndInnings(game.currentInnings.wickets, game.config.wicketsLimit, game.currentInnings.balls, ballsLimit)) {
+      triggerInningsEnd();
       var label = game.currentInnings.battingTeam === 'user' ? 'YOUR' : "AI'S";
-      if (soundEnabled) playChaseSound();
-      showModal(
-        '🔥 INNINGS OVER',
-        label + ' innings over!<br><br><strong>' + game.currentInnings.score + '/' + game.currentInnings.wickets + '</strong> (' + formatOvers(game.currentInnings.balls) + ' ov)<br><br>🎯 Target: <strong>' + game.currentInnings.score + '</strong>',
-        'INNINGS 2 →',
-        function () {
-          endInnings1();
-          showScreen('play', 'left');
-          render();
-        }
-      );
+      var scoreRef = game.currentInnings.score;
+      var wicketRef = game.currentInnings.wickets;
+      var ballsRef = game.currentInnings.balls;
+      game.phase = 'transition';
+      setTimeout(function () {
+        showModal(
+          '🔥 INNINGS OVER',
+          label + ' innings over!<br><br><strong>' + scoreRef + '/' + wicketRef + '</strong> (' + formatOvers(ballsRef) + ' ov)<br><br>🎯 Target: <strong>' + scoreRef + '</strong>',
+          'INNINGS 2 →',
+          function () {
+            endInnings1();
+            showScreen('play', 'left');
+            render();
+          }
+        );
+      }, 1200);
       return;
     }
   } else {
     if (shouldEndInnings(game.currentInnings.wickets, game.config.wicketsLimit, game.currentInnings.balls, ballsLimit)) {
+      triggerInningsEnd();
       game.result = game.currentInnings.battingTeam === 'user' ? 'ai' : 'user';
       var label2 = game.currentInnings.battingTeam === 'user' ? 'YOUR' : "AI'S";
       var winnerLabel = game.currentInnings.battingTeam === 'user' ? 'AI' : 'You';
+      var scoreRef2 = game.currentInnings.score;
+      var wicketRef2 = game.currentInnings.wickets;
+      var ballsRef2 = game.currentInnings.balls;
       var margin = game.innings1.target - game.currentInnings.score;
       var endedBy = game.currentInnings.wickets >= game.config.wicketsLimit ? 'ALL OUT' : 'OVERS LIMIT';
-      if (soundEnabled) playWicketSound();
-      showModal(
-        '🔥 INNINGS OVER (' + endedBy + ')',
-        label2 + ' innings over!<br><br><strong>' + game.currentInnings.score + '/' + game.currentInnings.wickets + '</strong> (' + formatOvers(game.currentInnings.balls) + ' ov)<br><br>🎯 Target was <strong>' + game.innings1.target + '</strong><br>' + winnerLabel + ' won by <strong>' + margin + '</strong>',
-        'RESULT →',
-        function () {
-          endGame();
-          renderResult();
-        }
-      );
-      return;
+      setTimeout(function () {
+        showModal(
+          '🔥 INNINGS OVER (' + endedBy + ')',
+          label2 + ' innings over!<br><br><strong>' + scoreRef2 + '/' + wicketRef2 + '</strong> (' + formatOvers(ballsRef2) + ' ov)<br><br>🎯 Target was <strong>' + game.innings1.target + '</strong><br>' + winnerLabel + ' won by <strong>' + margin + '</strong>',
+          'RESULT →',
+          function () {
+            endGame();
+            renderResult();
+          }
+        );
+        return;
+      }, 1200);
     }
     var chaseResult = getChaseResult(
       game.currentInnings.score,
@@ -1013,8 +1089,10 @@ if (typeof module !== 'undefined' && module.exports) {
     triggerCentury: triggerCentury,
     triggerHalfCentury: triggerHalfCentury,
     triggerWicketGlow: triggerWicketGlow,
+    triggerInningsEnd: triggerInningsEnd,
     triggerParticles: triggerParticles,
     updateRoleIndicator: updateRoleIndicator,
+    showHowToPlay: showHowToPlay,
     lastRoleIndicator: lastRoleIndicator,
     game: game,
   };

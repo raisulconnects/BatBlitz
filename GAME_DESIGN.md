@@ -16,7 +16,7 @@ BatBlitz is a turn-based browser cricket game built with vanilla HTML, CSS, and 
 | `game-logic.test.js` | 78 tests for pure logic |
 | `sounds.test.js` | 11 tests for sound functions |
 | `ux.test.js` | 30 tests for UX helper functions: `getSavedSoundPreference`, `setSavedSoundPreference`, `getRunFromKey`, `isPlayBlocked` |
-| `ui.test.js` | 51 tests for UI toggles, ball log empty-message fix, toss back button, changelog.json validation, milestone effects, role indicator, user-select CSS |
+ | `ui.test.js` | 66 tests for UI toggles, ball log empty-message fix, toss back button, changelog.json validation, milestone effects (century, fifty, wicket glow, innings end), role indicator, user-select CSS, how-to-play modal, HTML button structure |
 | `changelog.json` | Dynamic changelog data consumed by `showChangelog()` |
 | `CHANGELOG.md` | Version history with all notable changes |
 
@@ -28,11 +28,11 @@ BatBlitz is a turn-based browser cricket game built with vanilla HTML, CSS, and 
 | `tsparticles-confetti` | Rich particle effects: star burst on six, sparkle ring on boundary, red burst on wicket, medal shower on win |
 
 ### Test Coverage
-- **Total**: 170 tests (78 game-logic + 11 sounds + 30 ux + 51 ui)
+- **Total**: 185 tests (78 game-logic + 11 sounds + 30 ux + 66 ui)
 - `shouldEndInnings`: 18 tests
 - Toss redo loop: 4 tests verifying tie auto-retry always produces non-tie
 - UX helpers (`ux.test.js`): 30 tests across 4 functions with edge case coverage
-- UI toggles (`ui.test.js`): 51 tests covering ball log/commentary toggles, empty message removal, toss back button structure, changelog.json format validation, milestone effects (triggerCentury, triggerHalfCentury, triggerWicketGlow), game milestones initial state, role indicator update, user-select CSS check
+- UI toggles (`ui.test.js`): 55 tests covering ball log/commentary toggles, empty message removal, toss back button structure, changelog.json format validation, milestone effects (triggerCentury, triggerHalfCentury, triggerWicketGlow, triggerInningsEnd), game milestones initial state, role indicator update, user-select CSS check
 - All other logic functions fully covered
 
 ### Game Flow
@@ -144,6 +144,7 @@ All controlled by `soundEnabled` toggle.
 - **Half-century (50 runs)**: Blue/silver radial gradient full-screen overlay, "🎯 FIFTY!" text with GSAP bounce-in, blue/silver confetti burst (40 + 20 particles), moderate screen shake, `playBoundarySound` jingle. Auto-fades after 2s.
 - **Century (100 runs)**: Golden radial gradient full-screen overlay, "🎯 CENTURY!" text with GSAP bounce-in, golden confetti cascade (80 + 40 + 20 particles), strong screen shake, `playSixSound` fanfare. Auto-fades after 2.2s.
 - **Wicket**: Red glassmorphism (`backdrop-filter: blur(4px)`) effect applied to the scoreboard element with a pulsing box-shadow and border highlight. Class applied for 800ms via `setTimeout`. Uses CSS animation `wicket-glass-pulse`.
+- **Innings End**: Red radial gradient full-screen overlay, "🔥 OUT!" text with GSAP bounce-in, red wicket-style confetti burst (20 particles), strong screen shake, `playChaseSound` alert. Auto-fades after 2.2s. Game phase set to `'transition'` during the effect to disable ball buttons. Modal appears after 1.2s delay.
 
 ### GSAP-Powered JS Animations
 - **Screen transitions**: Directional slide (`x: ±40`, `opacity`) with `0.3s ease`
@@ -167,7 +168,7 @@ All controlled by `soundEnabled` toggle.
 
 ```js
 const game = {
-  phase: 'menu',           // menu | mode | about | toss | choice | play | result
+  phase: 'menu',           // menu | mode | about | toss | choice | play | transition | result
   mode: null,              // 'quick' | 't20' | 'test'
   config: {
     wicketsLimit: 1,
@@ -214,6 +215,7 @@ const game = {
 | `triggerCentury` | `() → void` | Shows golden full-screen overlay with "CENTURY!" text, golden confetti, screen shake, auto-hides after 2.2s |
 | `triggerHalfCentury` | `() → void` | Shows blue full-screen overlay with "FIFTY!" text, blue confetti, screen shake, auto-hides after 2s |
 | `triggerWicketGlow` | `() → void` | Adds red glassmorphism class to scoreboard element for 800ms |
+| `triggerInningsEnd` | `() → void` | Shows red full-screen overlay with "OUT!" text, wicket confetti, screen shake, auto-hides after 2.2s |
 | `triggerParticles` | `(type) → void` | Fires confetti burst by type: six, four, wicket, win, century, fifty |
 | `updateRoleIndicator` | `() → void` | Updates header badge to show current role (BATTING/BOWLING) or idle state |
 | `game` | `→ Object` | Reference to the global game state object (for test inspection) |
@@ -256,6 +258,18 @@ const game = {
 - **Commentary feed** (below number pad): Toggle row with chevron icon collapses/expands the commentary area with smooth CSS animation
 - Both states persist to localStorage (`batblitz-balllog`, `batblitz-commentary`) and restore on page reload
 - Exported testable functions: `toggleBallLog`, `toggleCommentary`, `getBallLogVisible`, `getCommentaryVisible`
+
+### How to Play Modal
+- Launched via "📖 HOW TO PLAY" button in the main menu
+- Uses the existing modal system with `showModal()` and GSAP entrance animation
+- Content organized into 5 tabbed/carded sections:
+  1. **Game Modes** — three mini-cards (Quick/T20/Test) with accent colors, wickets, and over limits
+  2. **How to Bat** — numbered steps with check/cross icons explaining the pick mechanic
+  3. **How to Bowl** — same structure as batting with red wicket highlight
+  4. **Match Flow** — toss → innings 1 (set target) → innings 2 (chase)
+  5. **Controls** — keyboard shortcuts (1-6, ESC)
+- Styled with `.howto-content` (scrollable max-height), `.howto-section` cards, `.howto-modes` flex grid, `.howto-rule` rows with icon prefix
+- Dismissed via "GOT IT" confirm button
 
 ### Sound Persistence
 - Initial value read from `localStorage.getItem('batblitz-sound')`

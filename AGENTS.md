@@ -64,6 +64,11 @@
 - Verify save/load functionality if affected.
 - Verify UI updates correctly reflect game state.
 
+## Git
+
+- Always ask before making any commit or push.
+- Do NOT commit or push unless the user explicitly says to.
+
 ## Before Finishing Any Task
 
 1. Verify implementation works.
