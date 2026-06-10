@@ -9,7 +9,8 @@
 <body>
   <div id="app">
     <header>
-      <h1>🏏 Cricket Game</h1>
+      <h1>🏏 BatBlitz</h1>
+      <button id="sound-toggle" onclick="toggleSound()" title="Toggle Sound">🔊</button>
     </header>
 
     <!-- TOSS SCREEN -->
@@ -37,6 +38,8 @@
     <!-- PLAY SCREEN -->
     <div id="play-screen" class="screen hidden">
       <div id="scoreboard" class="scoreboard"></div>
+      <div id="ball-history-area"></div>
+      <div id="chase-info" class="chase-info hidden"></div>
       <div id="status" class="status"></div>
       <div id="last-ball" class="last-ball"></div>
       <div class="ball-grid">
@@ -47,6 +50,7 @@
         <button class="ball-btn" onclick="playBall(5)">5</button>
         <button class="ball-btn" onclick="playBall(6)">6</button>
       </div>
+      <div id="commentary-area"></div>
     </div>
 
     <!-- RESULT SCREEN -->
@@ -65,7 +69,9 @@
       </div>
     </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
   <script src="game-logic.js"></script>
+  <script src="sounds.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -9,15 +9,24 @@ A browser-based 2-player (User vs AI) cricket game built with vanilla HTML, CSS,
 ## 1. Game Flow (Phase Machine)
 
 ```
-[TOSS] → [CHOICE] → [INNINGS 1] → [INNINGS 2] → [RESULT]
+[TOSS] ─┬─→ [TIE MODAL] ─→ [TOSS]
+         ├─→ [WIN MODAL] ─→ [CHOICE] ─→ [INNINGS 1]
+         └─→ [LOSE MODAL] ─→ [INNINGS 1]
+
+[INNINGS 1] ──→ [WICKET MODAL] ──→ [INNINGS 2]
+
+[INNINGS 2] ─┬─→ [CHASE WIN MODAL] ──→ [RESULT]
+              └─→ [WICKET/LOSE MODAL] ─→ [RESULT]
 ```
 
 | Phase | Description |
 |---|---|
-| `toss` | Single round of Rock-Paper-Scissors. Winner advances to choice. |
+| `toss` | Single round of Rock-Paper-Scissors. Opens modal with result. |
 | `choice` | Toss winner chooses to **Bat** or **Bowl** first. |
-| `play` | Active innings. Ball-by-ball gameplay. |
-| `result` | Match over. Winner declared. "Play Again" available. |
+| `play` | Active innings. Ball-by-ball gameplay. Opens modal on wicket/chase end. |
+| `result` | Match over. Winner declared. "Play Again" button resets to toss. |
+
+**Modal overlay**: At key events (toss result, wicket, chase complete), a fullscreen modal pauses the game. User clicks "Continue" to proceed. This prevents users from missing important moments.
 
 ---
 
@@ -79,8 +88,7 @@ A browser-based 2-player (User vs AI) cricket game built with vanilla HTML, CSS,
 - Heading: "Toss — Rock Paper Scissors!"
 - Three buttons: Rock 🪨, Paper 📄, Scissors ✂️
 - AI choice is random.
-- Result text: "You won!" / "AI won!"
-- Auto-advances to choice phase.
+- After picking → **event modal** shows the result (win/lose/tie). User clicks "Continue".
 
 ### 4.2 Choice Screen (only for toss winner)
 - Heading: "You won the toss! Choose:"
@@ -91,19 +99,40 @@ A browser-based 2-player (User vs AI) cricket game built with vanilla HTML, CSS,
 ```
 ┌──────────────────────────────────────┐
 │          SCOREBOARD                   │
-│    You: 45/1 (7.3 ov)               │
-│    AI:  0/0  (0.0 ov)               │
-│    Target: — (shown in innings 2)    │
+│    You: 45/1 (7.3 ov)   Target: 50  │
+│    ○ ○ ○ ● ○ ○  (last 12 balls)     │
+│    Need 5 more runs to win           │
 ├──────────────────────────────────────┤
 │       CURRENT SITUATION              │
 │  "You are batting. Pick a number!"   │
 │  "Last ball: You picked 4, AI 3 → 4 runs" │
 ├──────────────────────────────────────┤
 │      BUTTONS:  1  2  3  4  5  6      │
+├──────────────────────────────────────┤
+│  Commentary:                         │
+│  You picked 4, AI 3 → 4 runs         │
+│  You picked 2, AI 5 → 2 runs         │
 └──────────────────────────────────────┘
 ```
 
-### 4.4 Result Screen
+- **Ball history**: Colored dots below scoreboard (green=runs, blue=4, orange=6, red=wicket)
+- **Chase info**: In innings 2, shows runs needed to win
+- **Flash animation**: Last-ball area flashes green/red/blue/orange based on result
+- **Commentary**: Last 3 balls shown as text log at bottom
+
+### 4.4 Event Modal (overlays all screens)
+A fullscreen modal that pauses game flow at key moments:
+
+| Trigger | Heading | Body | Button |
+|---|---|---|---|
+| User won toss | `🎉 You Won the Toss!` | Emoji picks | "Choose Bat/Bowl →" |
+| AI won toss | `😤 AI Won the Toss!` | Picks + AI's choice | "Start Game →" |
+| RPS tie | `🤝 Tie!` | "Pick again" | "OK" |
+| Wicket (innings 1 ends) | `🔥 WICKET!` | Final score + target | "Start Innings 2 →" |
+| Chase complete (win) | `🎉 Chase Complete!` | Chased target + final score | "See Result →" |
+| Wicket (chase fails) | `🔥 WICKET!` | Final score + losing margin | "See Result →" |
+
+### 4.5 Result Screen
 - Final scores for both teams
 - Winner announcement
 - "Play Again" button → resets to toss
@@ -152,8 +181,18 @@ const game = {
 
   // Match result
   result: null,            // 'user' | 'ai' | 'draw'
+
+  // Ball-by-ball history (last 30 balls, for rendering dots + commentary)
+  ballHistory: [],
 };
 ```
+
+### Modal Callback (global variable)
+```js
+let modalCallback = null;  // stored by showModal, consumed by onModalContinue
+```
+
+When an event modal is shown, the callback is stored in `modalCallback`. When the user clicks the modal's "Continue" button, `onModalContinue()` runs the stored callback then clears it. During a modal, ball buttons are inaccessible because the overlay captures all clicks.
 
 ### Ball History (for future stats/animations)
 ```js
@@ -167,7 +206,7 @@ const ballHistory = [
 
 ## 6. Architecture — Logic / DOM Separation
 
-The game is split into two layers:
+The game is split into three layers:
 
 ### 6.1 Pure Logic Layer (`game-logic.js`)
 
@@ -186,11 +225,48 @@ Contains **six pure functions** — no DOM access, no side effects, no random. T
 
 ### 6.2 DOM Glue Layer (`script.js`)
 
-Handles game state (`game` object), user interaction (button clicks), DOM rendering, and random number generation. Calls the pure functions from `game-logic.js` for all rule decisions.
+Handles game state (`game` object), user interaction (button clicks), DOM rendering, random number generation, the event modal system, ball-history tracking, CSS animation triggers, and confetti. Calls the pure functions from `game-logic.js` for all rule decisions.
 
+**Modal system**: Three functions handle all event overlays:
+1. `showModal(heading, bodyHTML, buttonText, callback)` — shows the overlay and stores the callback
+2. `onModalContinue()` — called by the modal button, runs the stored callback, hides overlay
+3. `resetGame()` — also hides the modal if showing during reset
+
+**Animation system**: CSS keyframe animations triggered by JS class toggling:
+- `addAnimationClass(el, className)` — removes, force-reflows, then adds a class to restart CSS animation
+- Flash classes: `flash-runs` (green), `flash-out` (red), `flash-four` (blue), `flash-six` (orange)
+- Ball-history dots rendered from `game.ballHistory` array (max 30 entries)
+- Commentary log shows last 3 balls as text
+
+**Data flow with animations**:
 ```
-User Click → script.js → game-logic.js (pure) → result → script.js → DOM update
+User Click → script.js → game-logic.js (pure) → result → script.js → update state → render()
+                                                                              ↓
+                                                                        [DOM update]
+                                                                        [class toggle for animation]
+                                                                        [sound trigger]
+                                                                              ↓
+                                                              [event modal?] → wait for Continue → next action
 ```
+
+### 6.3 Sound Layer (`sounds.js`)
+
+Generates all game sounds programmatically via the Web Audio API — no audio files needed.
+
+| Function | Sound | Trigger |
+|---|---|---|
+| `playButtonSound()` | Short click beep | Any button press |
+| `playRunSound()` | Quick 660Hz tone | Run scored (1-3) |
+| `playBoundarySound()` | Two ascending tones | 4 or 6 runs |
+| `playWicketSound()` | Descending sawtooth | Wicket falls |
+| `playWinSound()` | Ascending arpeggio | Chase complete / match win |
+| `playChaseSound()` | Three ascending notes | Innings transition |
+
+**Implementation**: Uses `OscillatorNode` + `GainNode` for each sound. `AudioContext` is created lazily on first call and resumed if suspended (browser autoplay policy). All calls are wrapped in try/catch to silently fail if audio is unavailable.
+
+**Toggle**: Controlled by `soundEnabled` global variable. Toggled by the 🔊/🔇 button in the header.
+
+**Dual export**: Same pattern as `game-logic.js` — globals for browser, `module.exports` for Jest.
 
 ---
 
@@ -214,7 +290,7 @@ npm test           # runs 66 tests
 | `getChaseResult` | 12 | Win/lose/in-progress, score priority, negative/NaN/null guards |
 | `getOppositeRole` | 6 | Both valid roles, 4 invalid input guards |
 
-**Total: 66 tests**
+**Total: 75 tests** (66 original + 9 sound function contract tests)
 
 ### 7.3 Adding Tests
 
@@ -250,10 +326,12 @@ npm test           # runs 66 tests
 ```
 /
 ├── index.html            # All HTML markup
-├── style.css             # Styling (basic, no animations yet)
+├── style.css             # Styling + animations + responsive
 ├── game-logic.js         # Pure logic functions (no DOM) — shared by browser & tests
-├── script.js             # DOM glue — calls game-logic.js functions, handles UI
+├── sounds.js             # Web Audio API sound generation
+├── script.js             # DOM glue — calls game-logic.js + sounds.js, handles UI
 ├── game-logic.test.js    # Jest test suite (66 tests)
+├── sounds.test.js        # Jest test suite (9 tests)
 ├── package.json          # npm config, test runner
 ├── .gitignore            # ignores node_modules/
 ├── start.bat             # double-click to launch local server
@@ -265,19 +343,21 @@ npm test           # runs 66 tests
 
 ## 11. Extensibility Points (Future Versions)
 
-| Feature | How to Add |
-|---|---|
-| **Multiple wickets (10)** | Change `config.wicketsLimit` from 1 → 10. No logic change. |
-| **Overs limit (T20/ODI)** | Set `config.maxOvers`. Check before each ball. |
-| **Wide balls / No balls** | Add extra random outcome to bowling. Add penalty runs + extra ball. |
-| **Animations** | CSS keyframes on ball result display. |
-| **Sound effects** | `Audio` objects triggered on events (runs, wicket, win). |
-| **Player names / teams** | Add input fields before toss. |
-| **Statistics display** | Use `ballHistory` to render batting/bowling averages, run rate, etc. |
-| **Match history** | Save completed matches to `localStorage`. |
-| **Difficulty levels** | Adjust AI randomness — e.g., AI more likely to match user's frequent picks. |
-| **Powerplay / Field settings** | Add bonuses/penalties based on field configuration. |
-| **Mobile responsive** | Media queries + larger tap targets. |
+| Feature | How to Add | Status |
+|---|---|---|
+| **Multiple wickets (10)** | Change `config.wicketsLimit` from 1 → 10. No logic change. | ❌ Not started |
+| **Overs limit (T20/ODI)** | Set `config.maxOvers`. Check before each ball. | ❌ Not started |
+| **Wide balls / No balls** | Add extra random outcome to bowling. Add penalty runs + extra ball. | ❌ Not started |
+| **Ball-by-ball history** | Colored dots + commentary rendered from `ballHistory` array | ✅ Done |
+| **CSS Animations** | Flash effects on last-ball result, modal entrance animation | ✅ Done |
+| **Sound effects** | Web Audio API — 6 sound types, toggle button | ✅ Done |
+| **Confetti on win** | CDN `canvas-confetti` package, triggers on win screen | ✅ Done |
+| **Mobile responsive** | Media queries, touch optimization, landscape support | ✅ Done |
+| **Player names / teams** | Add input fields before toss. | ❌ Not started |
+| **Statistics display** | Use `ballHistory` to render batting/bowling averages, run rate, etc. | ❌ Not started |
+| **Match history** | Save completed matches to `localStorage`. | ❌ Not started |
+| **Difficulty levels** | Adjust AI randomness — e.g., AI more likely to match user's frequent picks. | ❌ Not started |
+| **Powerplay / Field settings** | Add bonuses/penalties based on field configuration. | ❌ Not started |
 
 ---
 

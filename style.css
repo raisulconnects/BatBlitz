@@ -342,3 +342,251 @@ p {
 .modal-content #modal-btn:active {
   transform: scale(0.97);
 }
+
+/* Sound toggle */
+#sound-toggle {
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+  font-size: 1.3rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  z-index: 10;
+}
+
+#app {
+  position: relative;
+}
+
+/* Ball history dots */
+.ball-history {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0.5rem 0;
+  min-height: 1.6rem;
+}
+
+.ball-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: bold;
+  color: #fff;
+  line-height: 1;
+}
+
+.ball-dot-run {
+  background: #388e3c;
+}
+
+.ball-dot-four {
+  background: #0288d1;
+}
+
+.ball-dot-six {
+  background: #f57c00;
+}
+
+.ball-dot-out {
+  background: #d32f2f;
+}
+
+/* Flash animations on last ball */
+@keyframes flash-runs {
+  0% { background-color: rgba(56, 142, 60, 0.3); border-radius: 6px; }
+  100% { background-color: transparent; }
+}
+
+@keyframes flash-out {
+  0% { background-color: rgba(211, 47, 47, 0.3); border-radius: 6px; }
+  100% { background-color: transparent; }
+}
+
+@keyframes flash-four {
+  0% { background-color: rgba(2, 136, 209, 0.3); border-radius: 6px; }
+  100% { background-color: transparent; }
+}
+
+@keyframes flash-six {
+  0% { background-color: rgba(245, 124, 0, 0.3); border-radius: 6px; }
+  100% { background-color: transparent; }
+}
+
+.last-ball.flash-runs {
+  animation: flash-runs 0.6s ease-out;
+}
+
+.last-ball.flash-out {
+  animation: flash-out 0.6s ease-out;
+}
+
+.last-ball.flash-four {
+  animation: flash-four 0.6s ease-out;
+}
+
+.last-ball.flash-six {
+  animation: flash-six 0.6s ease-out;
+}
+
+/* Modal entrance animation */
+@keyframes modal-enter {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-overlay:not(.hidden) .modal-content {
+  animation: modal-enter 0.3s ease-out;
+}
+
+/* Chase info */
+.chase-info {
+  font-size: 0.9rem;
+  color: #1a3a2a;
+  background: #fff3cd;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  margin: 0.25rem 0;
+}
+
+.chase-info.hidden {
+  display: none;
+}
+
+/* Commentary */
+.commentary {
+  width: 100%;
+  margin-top: 0.5rem;
+  text-align: left;
+  max-height: 4.5rem;
+  overflow-y: auto;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.commentary-line {
+  padding: 0.15rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.commentary-line:last-child {
+  border-bottom: none;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  #app {
+    padding: 1rem;
+    border-radius: 12px;
+    width: 100%;
+  }
+
+  header h1 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .ball-btn {
+    padding: 1rem;
+    font-size: 1.3rem;
+  }
+
+  .ball-grid {
+    gap: 0.5rem;
+    max-width: 100%;
+  }
+
+  .scoreboard {
+    font-size: 0.95rem;
+    padding: 0.7rem;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+
+  .modal-content h2 {
+    font-size: 1.3rem;
+  }
+
+  .result-grid {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .result-team-card {
+    min-width: 100px;
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .rps-btn {
+    font-size: 1.5rem;
+    padding: 0.8rem 1rem;
+  }
+
+  .choice-btn {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .ball-dot {
+    width: 1.3rem;
+    height: 1.3rem;
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+  #app {
+    max-width: 100%;
+    border-radius: 0;
+    min-height: 100vh;
+  }
+
+  .ball-grid {
+    grid-template-columns: repeat(6, 1fr);
+    max-width: 100%;
+  }
+
+  .ball-btn {
+    padding: 0.7rem;
+    font-size: 1.1rem;
+  }
+}
+
+/* Touch device hover mitigation */
+@media (hover: none) {
+  .ball-btn:hover {
+    background: #fff;
+    color: #1a3a2a;
+    border-color: #ccc;
+    transform: none;
+  }
+
+  .ball-btn:active {
+    transform: scale(0.95);
+  }
+
+  .rps-btn:hover {
+    border-color: #ddd;
+    background: #fff;
+    transform: none;
+  }
+
+  .choice-btn:hover {
+    border-color: #ddd;
+    background: #fff;
+    transform: none;
+  }
+}
