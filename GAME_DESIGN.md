@@ -8,17 +8,24 @@ BatBlitz is a turn-based browser cricket game built with vanilla HTML, CSS, and 
 ### Files
 | File | Purpose |
 |------|---------|
-| `index.html` | All screens: menu, mode-select, about, toss, choice, play (with ball log), result, and event modal |
-| `style.css` | Full responsive styling with animations, two-column play layout, mode cards, ball log panel |
-| `script.js` | UI logic: menu flow, toss, innings, rendering, ball log, modals |
-| `game-logic.js` | Pure pure logic: `getBallResult`, `shouldEndInnings`, `getChaseResult`, `determineTossWinner`, `getOppositeRole`, `formatOvers` |
-| `sounds.js` | Web Audio API: `playRunSound`, `playBoundarySound`, `playWicketSound`, `playWinSound`, `playChaseSound`, `playButtonSound` |
-| `game-logic.test.js` | 72 tests for pure logic |
-| `sounds.test.js` | 9 tests for sound functions |
+| `index.html` | All screens: menu, mode-select, about, toss, choice, play (with ball log), result, event modal. CDN deps: Google Fonts, GSAP, tsParticles-confetti |
+| `style.css` | Dark neon theme with glassmorphism, CRT scanline overlay, ~40 CSS animations, two-column play layout, retro typography, responsive |
+| `script.js` | UI logic: GSAP-powered transitions, tsParticles confetti, screen shake, score/boundary/six particle effects, ball log stagger animation |
+| `game-logic.js` | Pure logic: `getBallResult`, `shouldEndInnings`, `getChaseResult`, `determineTossWinner`, `getOppositeRole`, `formatOvers` |
+| `sounds.js` | 8-bit Web Audio API sounds using square/triangle/noise waves: 8 sound functions |
+| `game-logic.test.js` | 83 tests for pure logic |
+| `sounds.test.js` | 12 tests for sound functions |
+
+### External Dependencies (CDN)
+| Package | Purpose |
+|---------|---------|
+| Google Fonts: `Press Start 2P` + `VT323` | Retro pixel headings + readable mono body |
+| `gsap` (v3.12) | Screen transition slides, scoreboard animate, ball-log stagger, screen shake, modal entrance, button click feedback |
+| `tsparticles-confetti` | Rich particle effects: star burst on six, sparkle ring on boundary, red burst on wicket, medal shower on win |
 
 ### Test Coverage
-- **Total**: 81 tests (72 game-logic + 9 sounds)
-- `shouldEndInnings`: 12 tests (6 original + 6 over-limit)
+- **Total**: 85 tests (83 game-logic + 12 sounds)
+- `shouldEndInnings`: 18 tests (10 original wicket + 5 over-limit normal + 3 over-limit edge)
 - All other logic functions fully covered
 
 ### Game Flow
@@ -27,14 +34,14 @@ Menu → Mode Select → Toss (RPS) → Choice (bat/bowl) → Play → Result �
 ```
 
 ### Screens
-1. **Menu** — Title, "Play" and "About" buttons
-2. **Mode Select** — Quick Match / T20 / Test Match cards
+1. **Menu** — Glitch-text logo, neon "PLAY" button, About button, selected mode label
+2. **Mode Select** — Three glassmorphism cards (Quick/T20/Test) with hover glow
 3. **About** — Description and credits
-4. **Toss** — Rock Paper Scissors vs AI
-5. **Choice** — Choose bat or bowl (only if user wins toss)
-6. **Play** — Two-column layout (game left, ball log right)
-7. **Result** — Final scores with confetti on win
-8. **Event Modal** — Overlay for toss result, innings end, chase complete, wicket
+4. **Toss** — Rock Paper Scissors with hover scale + AI reveal sound
+5. **Choice** — Two neon "BAT" / "BOWL" buttons (green/red accent)
+6. **Play** — Two-column layout (game left, ball log right) with stadium scoreboard
+7. **Result** — Animated score cards + tsParticles confetti burst on win
+8. **Event Modal** — GSAP slide-down entrance, glassmorphism dark panel
 
 ## Game Modes
 
@@ -74,38 +81,68 @@ Formats as `overs.balls` (e.g., 13 balls → "2.1").
 ## Play Screen Layout
 
 ### Left Panel (`play-left`)
-- Scoreboard (current score, target, previous innings)
-- Ball history dots (colored circles)
-- Chase info banner
-- Status message
-- Last ball with flash animation
-- Ball grid (buttons 1–6)
-- Commentary area
+- Scoreboard (dark panel, neon green score, gold target badge, dimmed previous innings)
+- Ball history dots (colored circles with glow shadows)
+- Chase info banner (gold neon)
+- Status message (innings + role)
+- Last ball with flash animation (green/red/blue/orange highlight)
+- Ball grid (buttons 1–6 with hover glow, blue for "4", gold for "6")
+- Commentary area (dimmed monospace)
 
 ### Right Panel (`play-right`)
-- Ball Log panel with scroll
-- Each entry: colored dot + ball number + description
+- Ball Log panel with custom scrollbar
+- Each entry: colored glow dot + ball number + description
+- GSAP staggered fade-in on new entries
 - Cleared between innings
 
 ## Sound System (`sounds.js`)
-6 sound effects generated via Web Audio API:
-- `playRunSound` — short beep
-- `playBoundarySound` — ascending tone
-- `playWicketSound` — low buzz
-- `playWinSound` — triumphant chord
-- `playChaseSound` — alert
-- `playButtonSound` — click
+8 8-bit style sound effects generated via Web Audio API:
+| Function | Wave | Character |
+|----------|------|-----------|
+| `playButtonSound` | Square 800Hz, 40ms | Sharp click |
+| `playRunSound` | Square sweep 440→880Hz | Classic jump |
+| `playBoundarySound` | Square arpeggio (C-E-G) | Ascending chord |
+| `playSixSound` | Square arpeggio (C-E-G-C octave) | Triumphant |
+| `playWicketSound` | Triangle sweep 300→100Hz + noise | Sad trombone |
+| `playWinSound` | Square arpeggio (C-D-E-G-C) | Victory fanfare |
+| `playChaseSound` | Square arpeggio (A-C-E) | Urgent alert |
+| `playTossRevealSound` | Triangle arpeggio (E-A-C-E) | Reveal jingle |
 
 All controlled by `soundEnabled` toggle.
 
-## UI Features
-- **CSS Animations**: Flash effects on last ball (runs/four/six/out), modal entrance scale
-- **Canvas Confetti**: On player win (result screen)
-- **Ball History Dots**: Colored circles for last 12 balls
-- **Commentary**: Last 3 ball descriptions
-- **Ball Log**: Full per-ball scrollable log in right panel
-- **Mobile Responsive**: Stacks to single column on small screens
-- **Touch Mitigation**: Hover effects disabled on touch devices
+## UI/UX Features
+
+### Theme
+- **Colors**: Dark `#0a0f0a` background, neon green `#39ff14` accents, cricket red `#ff3333`, gold `#ffd700`
+- **Glassmorphism**: `rgba(255,255,255,0.04-0.06)` backgrounds + `backdrop-filter: blur(12px)`
+- **Neon glow**: `text-shadow` + `box-shadow` glow effects on all interactive elements
+- **CRT overlay**: Fixed scanline pseudo-element with flicker animation (`3s` cycle)
+
+### CSS Animations (40+ keyframes)
+| Animation | Trigger |
+|-----------|---------|
+| `glitch-skew` | Logo on menu screen (continuous) |
+| `app-shake` | Wicket event (5 rapid oscillations) |
+| `crt-flicker` | CRT overlay (continuous) |
+| Flash animations | Last ball highlight (runs/four/six/out) |
+| Button glow | Hover on all buttons |
+| Card lift | Hover on mode cards |
+| Modal entrance | Via GSAP (slide-down + bounce) |
+
+### GSAP-Powered JS Animations
+- **Screen transitions**: Directional slide (`x: ±40`, `opacity`) with `0.3s ease`
+- **Scoreboard refresh**: Opacity + y bounce on each update
+- **Ball-log entry**: Staggered fade-in (`opacity: 0→1`, `x: -15→0`)
+- **Button click**: Scale pulse (`1→0.92→1`, `0.08s`)
+- **Screen shake**: `translateX` wiggle (`±6px`, 5 repeats, `0.16s`)
+- **Modal entrance**: `y: -50→0` + `scale: 0.9→1` with `back.out(1.7)` ease
+- **Result cards**: `y: 30→0` stagger with `0.15s` delay between
+
+### tsParticles Effects
+- **Six**: Gold star burst (30 particles, `spread: 90`)
+- **Four**: Blue sparkle ring (15 particles, `spread: 60`)
+- **Wicket**: Red burst (20 particles, `spread: 45`)
+- **Win**: Multi-color confetti shower (200 + 100 particles in sequence)
 
 ## State (`script.js`)
 
@@ -142,9 +179,13 @@ const game = {
 - `getChaseResult` still based on wickets only (overs limit is checked separately before chase result)
 
 ## Technical Notes
-- No runtime frameworks
-- Jest for testing
-- `window.confetti` from CDN
-- All sounds are procedurally generated (no audio files)
+- No runtime frameworks (vanilla JS)
+- Jest for testing (85 tests)
+- GSAP loaded from CDN for advanced animations
+- tsParticles-confetti loaded from CDN for particle effects
+- Google Fonts loaded from CDN for retro typography
+- All sounds are procedurally generated via Web Audio API (no audio files)
+- `window.confetti` from `tsparticles-confetti` replaces old `canvas-confetti`
+- CRT overlay is a CSS pseudo-layer with scanlines and flicker animation
 - `shouldEndInnings` signature: `(wickets, wicketsLimit, balls?, ballsLimit?)`
 - `shouldEndInnings` is called for both innings; Innings 2 overs limit is checked there before `getChaseResult`

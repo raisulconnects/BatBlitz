@@ -1,11 +1,20 @@
 let modalCallback = null;
 let soundEnabled = true;
+let currentScreen = null;
+let gsapReady = false;
+
+function checkGsap() {
+  gsapReady = typeof gsap !== 'undefined';
+}
 
 function showModal(heading, bodyHTML, buttonText, callback) {
   document.getElementById('modal-heading').textContent = heading;
   document.getElementById('modal-body').innerHTML = bodyHTML;
   document.getElementById('modal-btn').textContent = buttonText;
   document.getElementById('event-modal').classList.remove('hidden');
+  if (gsapReady) {
+    gsap.fromTo('.modal-content', { y: -50, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(1.7)' });
+  }
   modalCallback = callback;
 }
 
@@ -23,6 +32,52 @@ function addAnimationClass(el, className) {
   el.classList.remove(className);
   void el.offsetWidth;
   el.classList.add(className);
+}
+
+function screenShake() {
+  const app = document.getElementById('app');
+  app.classList.remove('screen-shake');
+  void app.offsetWidth;
+  if (gsapReady) {
+    gsap.to(app, { x: '+=6', repeat: 5, yoyo: true, duration: 0.04, ease: 'power2.inOut', onComplete: function () { gsap.set(app, { x: 0 }); } });
+  } else {
+    app.classList.add('screen-shake');
+  }
+}
+
+function triggerParticles(type) {
+  if (typeof confetti !== 'function') return;
+  if (type === 'six') {
+    confetti({ particleCount: 30, spread: 90, origin: { y: 0.5 }, colors: ['#ffd700', '#ffea00', '#ffffff'] });
+    setTimeout(function () { confetti({ particleCount: 15, spread: 60, origin: { y: 0.5 }, colors: ['#ffd700'] }); }, 100);
+  } else if (type === 'four') {
+    confetti({ particleCount: 15, spread: 60, origin: { y: 0.5 }, colors: ['#0288d1', '#03a9f4', '#ffffff'] });
+  } else if (type === 'wicket') {
+    confetti({ particleCount: 20, spread: 45, origin: { y: 0.5 }, colors: ['#d32f2f', '#ff5252'] });
+  } else if (type === 'win') {
+    confetti({ particleCount: 200, spread: 100, origin: { y: 0.5, x: 0.5 }, colors: ['#39ff14', '#ffd700', '#ff6b6b', '#0288d1'] });
+    setTimeout(function () {
+      confetti({ particleCount: 100, spread: 80, origin: { y: 0.3 }, colors: ['#ffd700', '#ffffff'] });
+    }, 250);
+  }
+}
+
+function animateButton(btn) {
+  if (gsapReady) {
+    gsap.fromTo(btn, { scale: 1 }, { scale: 0.92, duration: 0.08, yoyo: true, ease: 'power2.inOut' });
+  }
+}
+
+function animateScoreChange(element, newText) {
+  if (gsapReady) {
+    gsap.fromTo(element, { opacity: 0.3, y: -4 }, { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out' });
+  }
+}
+
+function animateBallLogEntry(entry) {
+  if (gsapReady) {
+    gsap.fromTo(entry, { opacity: 0, x: -15, scale: 0.95 }, { opacity: 1, x: 0, scale: 1, duration: 0.25, ease: 'power2.out' });
+  }
 }
 
 function toggleSound() {
@@ -50,17 +105,17 @@ const game = {
 };
 
 function showMenu() {
-  showScreen('menu');
+  showScreen('menu', 'left');
 }
 
 function showModeSelect() {
   playButtonSound();
-  showScreen('mode');
+  showScreen('mode', 'left');
 }
 
 function showAbout() {
   playButtonSound();
-  showScreen('about');
+  showScreen('about', 'left');
 }
 
 function selectMode(mode) {
@@ -76,7 +131,8 @@ function selectMode(mode) {
     game.config.wicketsLimit = 10;
     game.config.maxOvers = null;
   }
-  showScreen('toss');
+  document.getElementById('menu-mode-label').textContent = mode.toUpperCase() + ' MATCH';
+  showScreen('toss', 'left');
 }
 
 function startToss(pick) {
@@ -90,25 +146,27 @@ function startToss(pick) {
   game.tossWinner = result;
 
   const emojis = { rock: '🪨', paper: '📄', scissors: '✂️' };
-  const msg = `${emojis[pick]} You · AI ${emojis[aiPick]}`;
+  const msg = emojis[pick] + ' You · AI ' + emojis[aiPick];
 
   if (result === 'tie') {
-    showModal('🤝 Tie!', `${msg}<br><br>Pick again.`, 'OK', () => {});
+    showModal('⟳ TIE!', msg + '<br><br>Pick again.', 'OK', function () {});
     return;
   }
 
+  if (soundEnabled) playTossRevealSound();
+
   if (result === 'user') {
-    showModal('🎉 You Won the Toss!', msg, 'Choose Bat/Bowl →', () => {
-      showScreen('choice');
+    showModal('🎉 YOU WIN!', msg, 'CHOOSE', function () {
+      showScreen('choice', 'left');
     });
   } else {
-    const aiRole = Math.random() < 0.5 ? 'bat' : 'bowl';
+    var aiRole = Math.random() < 0.5 ? 'bat' : 'bowl';
     game.aiRole = aiRole;
     game.userRole = getOppositeRole(aiRole);
-    const roleLabel = aiRole === 'bat' ? 'batting' : 'bowling';
-    showModal('😤 AI Won the Toss!', `${msg}<br><br>AI chose to go <strong>${roleLabel}</strong> first.`, 'Start Game →', () => {
+    var roleLabel = aiRole === 'bat' ? 'BATTING' : 'BOWLING';
+    showModal('🤖 AI WINS', msg + '<br><br>AI chose <strong>' + roleLabel + '</strong> first.', 'PLAY →', function () {
       initInnings();
-      showScreen('play');
+      showScreen('play', 'left');
       render();
     });
   }
@@ -118,10 +176,10 @@ function chooseRole(role) {
   playButtonSound();
   game.userRole = role;
   game.aiRole = getOppositeRole(role);
-  const roleLabel = role === 'bat' ? 'batting' : 'bowling';
-  game.message = `You chose to go ${roleLabel} first.`;
+  var roleLabel = role === 'bat' ? 'BATTING' : 'BOWLING';
+  game.message = 'You chose ' + roleLabel + ' first.';
   initInnings();
-  showScreen('play');
+  showScreen('play', 'left');
   render();
 }
 
@@ -143,10 +201,13 @@ function playBall(userPick) {
   game.message = '';
   playButtonSound();
 
-  const battingTeam = game.currentInnings.battingTeam;
-  const isUserBatting = battingTeam === 'user';
+  var btn = document.querySelector('.ball-btn[data-run="' + userPick + '"]');
+  if (btn) animateButton(btn);
 
-  let batterPick, bowlerPick;
+  var battingTeam = game.currentInnings.battingTeam;
+  var isUserBatting = battingTeam === 'user';
+
+  var batterPick, bowlerPick;
 
   if (isUserBatting) {
     batterPick = userPick;
@@ -156,57 +217,71 @@ function playBall(userPick) {
     bowlerPick = userPick;
   }
 
-  const { isOut, runs } = getBallResult(batterPick, bowlerPick);
+  var result = getBallResult(batterPick, bowlerPick);
   game.currentInnings.balls++;
 
-  if (isOut) {
+  if (result.isOut) {
     game.currentInnings.wickets++;
   } else {
-    game.currentInnings.score += runs;
+    game.currentInnings.score += result.runs;
   }
 
   game.lastBall = {
     batter: isUserBatting ? 'user' : 'ai',
-    batterPick,
-    bowlerPick,
-    runs,
-    isOut,
+    batterPick: batterPick,
+    bowlerPick: bowlerPick,
+    runs: result.runs,
+    isOut: result.isOut,
   };
 
   game.ballHistory.push({
     batter: isUserBatting ? 'user' : 'ai',
-    batterPick,
-    bowlerPick,
-    runs,
-    isOut,
+    batterPick: batterPick,
+    bowlerPick: bowlerPick,
+    runs: result.runs,
+    isOut: result.isOut,
   });
   if (game.ballHistory.length > 30) game.ballHistory.shift();
 
   if (soundEnabled) {
-    if (isOut) {
+    if (result.isOut) {
       playWicketSound();
-    } else if (runs >= 4) {
+    } else if (result.runs >= 6) {
+      playSixSound();
+    } else if (result.runs >= 4) {
       playBoundarySound();
-    } else if (runs > 0) {
+    } else if (result.runs > 0) {
       playRunSound();
     }
   }
 
+  if (result.runs >= 6) {
+    triggerParticles('six');
+  } else if (result.runs >= 4) {
+    triggerParticles('four');
+  } else if (result.isOut) {
+    triggerParticles('wicket');
+  }
+
+  if (result.isOut) {
+    screenShake();
+  }
+
   renderBallLog();
 
-  const ballsLimit = game.config.maxOvers !== null ? game.config.maxOvers * game.config.ballsPerOver : null;
+  var ballsLimit = game.config.maxOvers !== null ? game.config.maxOvers * game.config.ballsPerOver : null;
 
   if (game.currentInnings === game.innings1) {
     if (shouldEndInnings(game.currentInnings.wickets, game.config.wicketsLimit, game.currentInnings.balls, ballsLimit)) {
-      const label = game.currentInnings.battingTeam === 'user' ? 'Your' : "AI's";
+      var label = game.currentInnings.battingTeam === 'user' ? 'YOUR' : "AI'S";
       if (soundEnabled) playChaseSound();
       showModal(
-        '🔥 INNINGS OVER!',
-        `${label} innings over!<br><br><strong>Score: ${game.currentInnings.score}/${game.currentInnings.wickets}</strong> (${formatOvers(game.currentInnings.balls)} ov)<br><br>🎯 <strong>Target: ${game.currentInnings.score}</strong> runs`,
-        'Start Innings 2 →',
-        () => {
+        '🔥 INNINGS OVER',
+        label + ' innings over!<br><br><strong>' + game.currentInnings.score + '/' + game.currentInnings.wickets + '</strong> (' + formatOvers(game.currentInnings.balls) + ' ov)<br><br>🎯 Target: <strong>' + game.currentInnings.score + '</strong>',
+        'INNINGS 2 →',
+        function () {
           endInnings1();
-          showScreen('play');
+          showScreen('play', 'left');
           render();
         }
       );
@@ -215,23 +290,23 @@ function playBall(userPick) {
   } else {
     if (shouldEndInnings(game.currentInnings.wickets, game.config.wicketsLimit, game.currentInnings.balls, ballsLimit)) {
       game.result = game.currentInnings.battingTeam === 'user' ? 'ai' : 'user';
-      const label = game.currentInnings.battingTeam === 'user' ? 'Your' : "AI's";
-      const winnerLabel = game.currentInnings.battingTeam === 'user' ? 'AI' : 'You';
-      const margin = game.innings1.target - game.currentInnings.score;
-      const endedBy = game.currentInnings.wickets >= game.config.wicketsLimit ? 'all out' : 'overs limit';
+      var label2 = game.currentInnings.battingTeam === 'user' ? 'YOUR' : "AI'S";
+      var winnerLabel = game.currentInnings.battingTeam === 'user' ? 'AI' : 'You';
+      var margin = game.innings1.target - game.currentInnings.score;
+      var endedBy = game.currentInnings.wickets >= game.config.wicketsLimit ? 'ALL OUT' : 'OVERS LIMIT';
       if (soundEnabled) playWicketSound();
       showModal(
-        '🔥 INNINGS OVER!',
-        `${label} innings over (${endedBy})!<br><br><strong>Score: ${game.currentInnings.score}/${game.currentInnings.wickets}</strong> (${formatOvers(game.currentInnings.balls)} ov)<br><br>🎯 Target was <strong>${game.innings1.target}</strong><br>${winnerLabel} won by <strong>${margin}</strong> runs`,
-        'See Result →',
-        () => {
+        '🔥 INNINGS OVER (' + endedBy + ')',
+        label2 + ' innings over!<br><br><strong>' + game.currentInnings.score + '/' + game.currentInnings.wickets + '</strong> (' + formatOvers(game.currentInnings.balls) + ' ov)<br><br>🎯 Target was <strong>' + game.innings1.target + '</strong><br>' + winnerLabel + ' won by <strong>' + margin + '</strong>',
+        'RESULT →',
+        function () {
           endGame();
           renderResult();
         }
       );
       return;
     }
-    const chaseResult = getChaseResult(
+    var chaseResult = getChaseResult(
       game.currentInnings.score,
       game.innings1.target,
       game.currentInnings.wickets,
@@ -239,13 +314,13 @@ function playBall(userPick) {
     );
     if (chaseResult === 'win') {
       game.result = game.currentInnings.battingTeam;
-      const winnerLabel = game.currentInnings.battingTeam === 'user' ? 'You' : 'AI';
+      var winnerLabel2 = game.currentInnings.battingTeam === 'user' ? 'You' : 'AI';
       if (soundEnabled) playWinSound();
       showModal(
-        '🎉 Chase Complete!',
-        `${winnerLabel} chased down <strong>${game.innings1.target}</strong> runs!<br><br>Final: <strong>${game.currentInnings.score}/${game.currentInnings.wickets}</strong> (${formatOvers(game.currentInnings.balls)} ov)`,
-        'See Result →',
-        () => {
+        '🎉 CHASE COMPLETE!',
+        winnerLabel2 + ' chased down <strong>' + game.innings1.target + '</strong> runs!<br><br>Final: <strong>' + game.currentInnings.score + '/' + game.currentInnings.wickets + '</strong> (' + formatOvers(game.currentInnings.balls) + ' ov)',
+        'RESULT →',
+        function () {
           endGame();
           renderResult();
         }
@@ -254,15 +329,15 @@ function playBall(userPick) {
     }
     if (chaseResult === 'lose') {
       game.result = game.currentInnings.battingTeam === 'user' ? 'ai' : 'user';
-      const loserLabel = game.currentInnings.battingTeam === 'user' ? 'You' : 'AI';
-      const winnerLabel = game.currentInnings.battingTeam === 'user' ? 'AI' : 'You';
-      const margin = game.innings1.target - game.currentInnings.score;
+      var loserLabel = game.currentInnings.battingTeam === 'user' ? 'Your' : "AI's";
+      var winnerLabel3 = game.currentInnings.battingTeam === 'user' ? 'AI' : 'You';
+      var margin2 = game.innings1.target - game.currentInnings.score;
       if (soundEnabled) playWicketSound();
       showModal(
-        '🔥 WICKET!',
-        `${loserLabel} are all out!<br><br><strong>Score: ${game.currentInnings.score}/${game.currentInnings.wickets}</strong> (${formatOvers(game.currentInnings.balls)} ov)<br><br>🎯 Target was <strong>${game.innings1.target}</strong><br>${winnerLabel} won by <strong>${margin}</strong> runs`,
-        'See Result →',
-        () => {
+        '🔥 ALL OUT!',
+        loserLabel + ' team all out!<br><br><strong>' + game.currentInnings.score + '/' + game.currentInnings.wickets + '</strong> (' + formatOvers(game.currentInnings.balls) + ' ov)<br><br>🎯 Target was <strong>' + game.innings1.target + '</strong><br>' + winnerLabel3 + ' won by <strong>' + margin2 + '</strong>',
+        'RESULT →',
+        function () {
           endGame();
           renderResult();
         }
@@ -287,15 +362,16 @@ function endInnings1() {
 
 function endGame() {
   game.phase = 'result';
-  showScreen('result');
+  showScreen('result', 'left');
   renderResult();
 }
 
 function renderBallHistory() {
-  const recent = game.ballHistory.slice(-12);
+  var recent = game.ballHistory.slice(-12);
   if (recent.length === 0) return '';
-  let html = '<div class="ball-history">';
-  recent.forEach(function (b) {
+  var html = '<div class="ball-history">';
+  for (var i = 0; i < recent.length; i++) {
+    var b = recent[i];
     if (b.isOut) {
       html += '<span class="ball-dot ball-dot-out" title="Wicket">✕</span>';
     } else if (b.runs === 6) {
@@ -305,76 +381,81 @@ function renderBallHistory() {
     } else {
       html += '<span class="ball-dot ball-dot-run" title="' + b.runs + ' run' + (b.runs > 1 ? 's' : '') + '">' + b.runs + '</span>';
     }
-  });
+  }
   html += '</div>';
   return html;
 }
 
 function renderCommentary() {
-  const recent = game.ballHistory.slice(-3).reverse();
+  var recent = game.ballHistory.slice(-3).reverse();
   if (recent.length === 0) return '';
-  let html = '<div class="commentary">';
-  recent.forEach(function (b) {
-    const batterLabel = b.batter === 'user' ? 'You' : 'AI';
-    const bowlerLabel = b.batter === 'user' ? 'AI' : 'You';
-    let text = batterLabel + ' picked ' + b.batterPick + ', ' + bowlerLabel + ' picked ' + b.bowlerPick + ' → ';
+  var html = '<div class="commentary">';
+  for (var i = 0; i < recent.length; i++) {
+    var b = recent[i];
+    var batterLabel = b.batter === 'user' ? 'You' : 'AI';
+    var bowlerLabel = b.batter === 'user' ? 'AI' : 'You';
+    var text = batterLabel + ' picked ' + b.batterPick + ', ' + bowlerLabel + ' picked ' + b.bowlerPick + ' → ';
     text += b.isOut ? '<strong class="out-text">OUT!</strong>' : '<strong>' + b.runs + ' run' + (b.runs > 1 ? 's' : '') + '</strong>';
     html += '<div class="commentary-line">' + text + '</div>';
-  });
+  }
   html += '</div>';
   return html;
 }
 
 function renderBallLog() {
-  const container = document.getElementById('ball-log-entries');
-  const ball = game.ballHistory[game.ballHistory.length - 1];
-  const ballNum = game.currentInnings.balls;
+  var container = document.getElementById('ball-log-entries');
+  var ball = game.ballHistory[game.ballHistory.length - 1];
+  var ballNum = game.currentInnings.balls;
 
-  const batterLabel = ball.batter === 'user' ? 'You' : 'AI';
-  const text = batterLabel + ' → ' + (ball.isOut ? 'Wicket' : ball.runs + ' run' + (ball.runs > 1 ? 's' : ''));
+  var batterLabel = ball.batter === 'user' ? 'You' : 'AI';
+  var text = batterLabel + ' → ' + (ball.isOut ? 'Wicket' : ball.runs + ' run' + (ball.runs > 1 ? 's' : ''));
 
-  let dotClass = 'ball-log-run';
+  var dotClass = 'ball-log-run';
   if (ball.isOut) dotClass = 'ball-log-wicket';
   else if (ball.runs === 6) dotClass = 'ball-log-six';
   else if (ball.runs === 4) dotClass = 'ball-log-four';
 
-  const display = ball.isOut ? '✕' : ball.runs;
-  const entry = document.createElement('div');
+  var display = ball.isOut ? '✕' : ball.runs;
+  var entry = document.createElement('div');
   entry.className = 'ball-log-entry';
-  entry.innerHTML = '<span class="ball-log-ball ' + dotClass + '">' + display + '</span><span class="ball-log-text"><strong>#' + ballNum + '</strong> ' + text + '</span>';
+  entry.innerHTML = '<span class="ball-log-ball ' + dotClass + '">' + display + '</span><span class="ball-log-text">#' + ballNum + ' ' + text + '</span>';
   container.appendChild(entry);
+  animateBallLogEntry(entry);
   container.scrollTop = container.scrollHeight;
 }
 
 function render() {
   if (game.phase !== 'play') return;
 
-  const isInnings1 = game.currentInnings === game.innings1;
-  const battingTeam = game.currentInnings.battingTeam;
-  const battingLabel = battingTeam === 'user' ? 'You' : 'AI';
-  const overs = formatOvers(game.currentInnings.balls);
+  var isInnings1 = game.currentInnings === game.innings1;
+  var battingTeam = game.currentInnings.battingTeam;
+  var battingLabel = battingTeam === 'user' ? 'You' : 'AI';
+  var overs = formatOvers(game.currentInnings.balls);
 
-  let sbHTML = '<div class="score-row">';
+  var sbHTML = '<div class="score-row">';
   sbHTML += '<span class="score-current"><strong>' + battingLabel + '</strong> ' + game.currentInnings.score + '/' + game.currentInnings.wickets + ' (' + overs + ' ov)</span>';
   if (!isInnings1 && game.innings1.target !== null) {
-    sbHTML += '<span class="score-target">Target: ' + game.innings1.target + '</span>';
+    sbHTML += '<span class="score-target">🎯 ' + game.innings1.target + '</span>';
   }
   sbHTML += '</div>';
 
   if (!isInnings1) {
-    const prevBatting = game.innings1.battingTeam;
-    const prevLabel = prevBatting === 'user' ? 'You' : 'AI';
-    const prevOvers = formatOvers(game.innings1.balls);
+    var prevBatting = game.innings1.battingTeam;
+    var prevLabel = prevBatting === 'user' ? 'You' : 'AI';
+    var prevOvers = formatOvers(game.innings1.balls);
     sbHTML += '<div class="score-previous"><strong>' + prevLabel + '</strong> ' + game.innings1.score + '/' + game.innings1.wickets + ' (' + prevOvers + ' ov)</div>';
   }
 
-  document.getElementById('scoreboard').innerHTML = sbHTML;
+  var scoreboard = document.getElementById('scoreboard');
+  scoreboard.innerHTML = sbHTML;
+  animateScoreChange(scoreboard, sbHTML);
+
   document.getElementById('ball-history-area').innerHTML = renderBallHistory();
 
   if (!isInnings1 && game.innings1.target !== null) {
-    const needed = game.innings1.target - game.currentInnings.score;
+    var needed = game.innings1.target - game.currentInnings.score;
     if (needed > 0) {
-      document.getElementById('chase-info').innerHTML = '<div class="chase-info">Need <strong>' + needed + '</strong> more run' + (needed > 1 ? 's' : '') + ' to win</div>';
+      document.getElementById('chase-info').innerHTML = 'NEED <strong>' + needed + '</strong> MORE RUN' + (needed > 1 ? 'S' : '') + ' TO WIN';
       document.getElementById('chase-info').classList.remove('hidden');
     } else {
       document.getElementById('chase-info').classList.add('hidden');
@@ -386,21 +467,21 @@ function render() {
   if (game.message) {
     document.getElementById('status').innerHTML = '<div class="status-message">' + game.message + '</div>';
   } else {
-    const isUserBatting = battingTeam === 'user';
-    const inningsLabel = isInnings1 ? 'Innings 1' : 'Innings 2';
-    const actionLabel = isUserBatting ? 'batting' : 'bowling';
-    document.getElementById('status').innerHTML = '<div class="status-message">' + inningsLabel + ' — You are ' + actionLabel + '. Pick a number!</div>';
+    var isUserBatting = battingTeam === 'user';
+    var inningsLabel = isInnings1 ? 'INNINGS 1' : 'INNINGS 2';
+    var actionLabel = isUserBatting ? 'BATTING' : 'BOWLING';
+    document.getElementById('status').innerHTML = '<div class="status-message">' + inningsLabel + ' — YOU ARE ' + actionLabel + '.</div>';
   }
 
   if (game.lastBall) {
-    const lb = game.lastBall;
-    const batterLabel = lb.batter === 'user' ? 'You' : 'AI';
-    const bowlerLabel = lb.batter === 'user' ? 'AI' : 'You';
-    let text = 'Last ball: ' + batterLabel + ' picked ' + lb.batterPick + ', ' + bowlerLabel + ' picked ' + lb.bowlerPick + ' → ';
-    text += lb.isOut ? '<strong class="out-text">OUT!</strong>' : '<strong>' + lb.runs + ' runs</strong>';
-    document.getElementById('last-ball').innerHTML = text;
+    var lb = game.lastBall;
+    var batterLabel2 = lb.batter === 'user' ? 'You' : 'AI';
+    var bowlerLabel2 = lb.batter === 'user' ? 'AI' : 'You';
+    var text2 = 'Last: ' + batterLabel2 + ' [' + lb.batterPick + '] vs ' + bowlerLabel2 + ' [' + lb.bowlerPick + '] → ';
+    text2 += lb.isOut ? '<strong class="out-text">OUT!</strong>' : '<strong>' + lb.runs + ' runs</strong>';
+    document.getElementById('last-ball').innerHTML = text2;
 
-    const lastBallEl = document.getElementById('last-ball');
+    var lastBallEl = document.getElementById('last-ball');
     lastBallEl.classList.remove('flash-runs', 'flash-out', 'flash-four', 'flash-six');
     void lastBallEl.offsetWidth;
     if (lb.isOut) {
@@ -420,43 +501,53 @@ function render() {
 }
 
 function renderResult() {
-  const heading = document.getElementById('result-heading');
-  const details = document.getElementById('result-details');
+  var heading = document.getElementById('result-heading');
+  var details = document.getElementById('result-details');
 
-  const userBatFirst = game.innings1.battingTeam === 'user';
-  const userInnings = userBatFirst ? game.innings1 : game.innings2;
-  const aiInnings = userBatFirst ? game.innings2 : game.innings1;
+  var userBatFirst = game.innings1.battingTeam === 'user';
+  var userInnings = userBatFirst ? game.innings1 : game.innings2;
+  var aiInnings = userBatFirst ? game.innings2 : game.innings1;
 
   details.innerHTML =
     '<div class="result-grid">' +
       '<div class="result-team-card">' +
-        '<h3>🏏 You</h3>' +
+        '<h3>🏏 YOU</h3>' +
         '<p class="result-score">' + userInnings.score + '/' + userInnings.wickets + '</p>' +
-        '<p class="result-overs">' + formatOvers(userInnings.balls) + ' overs</p>' +
+        '<p class="result-overs">' + formatOvers(userInnings.balls) + ' ov</p>' +
       '</div>' +
       '<div class="result-team-card">' +
         '<h3>🤖 AI</h3>' +
         '<p class="result-score">' + aiInnings.score + '/' + aiInnings.wickets + '</p>' +
-        '<p class="result-overs">' + formatOvers(aiInnings.balls) + ' overs</p>' +
+        '<p class="result-overs">' + formatOvers(aiInnings.balls) + ' ov</p>' +
       '</div>' +
     '</div>';
 
   if (game.result === 'user') {
-    heading.textContent = '🎉 You Win!';
-    if (typeof confetti === 'function') {
-      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-    }
+    heading.textContent = '🎉 YOU WIN!';
+    triggerParticles('win');
   } else if (game.result === 'ai') {
-    heading.textContent = '😔 AI Wins!';
+    heading.textContent = '😔 AI WINS!';
   } else {
-    heading.textContent = "🤝 It's a Draw!";
+    heading.textContent = "🤝 IT'S A DRAW!";
+  }
+
+  if (gsapReady) {
+    gsap.from('.result-team-card', { y: 30, opacity: 0, stagger: 0.15, duration: 0.4, ease: 'power2.out' });
   }
 }
 
-function showScreen(screen) {
+function showScreen(screen, direction) {
+  direction = direction || 'left';
   document.querySelectorAll('.screen').forEach(function (el) { el.classList.add('hidden'); });
-  const screenEl = document.getElementById(screen + '-screen');
+  var screenEl = document.getElementById(screen + '-screen');
   if (screenEl) screenEl.classList.remove('hidden');
+
+  if (gsapReady && currentScreen && screen !== currentScreen) {
+    var fromX = direction === 'left' ? 40 : -40;
+    gsap.fromTo(screenEl, { opacity: 0, x: fromX }, { opacity: 1, x: 0, duration: 0.3, ease: 'power2.out' });
+  }
+
+  currentScreen = screen;
   game.phase = screen;
 }
 
@@ -478,7 +569,9 @@ function resetGame() {
   game.ballHistory = [];
   game.message = '';
   document.getElementById('toss-result').innerHTML = '';
-  showScreen('menu');
+  document.getElementById('menu-mode-label').textContent = 'SELECT MODE TO START';
+  showScreen('menu', 'right');
 }
 
+checkGsap();
 showScreen('menu');

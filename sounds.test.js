@@ -2,19 +2,23 @@ const {
   playButtonSound,
   playRunSound,
   playBoundarySound,
+  playSixSound,
   playWicketSound,
   playWinSound,
   playChaseSound,
+  playTossRevealSound,
 } = require('./sounds');
 
 describe('sound functions', function () {
-  test('all six sound functions are exported', function () {
+  test('all exported functions are present', function () {
     expect(typeof playButtonSound).toBe('function');
     expect(typeof playRunSound).toBe('function');
     expect(typeof playBoundarySound).toBe('function');
+    expect(typeof playSixSound).toBe('function');
     expect(typeof playWicketSound).toBe('function');
     expect(typeof playWinSound).toBe('function');
     expect(typeof playChaseSound).toBe('function');
+    expect(typeof playTossRevealSound).toBe('function');
   });
 
   test('playButtonSound does not throw', function () {
@@ -29,6 +33,10 @@ describe('sound functions', function () {
     expect(function () { playBoundarySound(); }).not.toThrow();
   });
 
+  test('playSixSound does not throw', function () {
+    expect(function () { playSixSound(); }).not.toThrow();
+  });
+
   test('playWicketSound does not throw', function () {
     expect(function () { playWicketSound(); }).not.toThrow();
   });
@@ -41,7 +49,11 @@ describe('sound functions', function () {
     expect(function () { playChaseSound(); }).not.toThrow();
   });
 
-  test('calling twice does not throw', function () {
+  test('playTossRevealSound does not throw', function () {
+    expect(function () { playTossRevealSound(); }).not.toThrow();
+  });
+
+  test('calling a sound twice does not throw', function () {
     expect(function () {
       playRunSound();
       playRunSound();
@@ -53,9 +65,11 @@ describe('sound functions', function () {
       playButtonSound();
       playRunSound();
       playBoundarySound();
+      playSixSound();
       playWicketSound();
       playWinSound();
       playChaseSound();
+      playTossRevealSound();
     }).not.toThrow();
   });
 });

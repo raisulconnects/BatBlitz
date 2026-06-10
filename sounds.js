@@ -20,9 +20,9 @@ function playTone(frequency, duration, type, volume) {
   try {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = type || 'sine';
-    osc.frequency.value = frequency;
-    gain.gain.setValueAtTime(volume || 0.12, ctx.currentTime);
+    osc.type = type || 'square';
+    osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+    gain.gain.setValueAtTime(volume || 0.08, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -32,34 +32,84 @@ function playTone(frequency, duration, type, volume) {
   }
 }
 
+function playNoise(duration, volume) {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  try {
+    const bufferSize = ctx.sampleRate * duration;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(volume || 0.05, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    source.connect(gain);
+    gain.connect(ctx.destination);
+    source.start(ctx.currentTime);
+  } catch (e) {
+  }
+}
+
+function playToneSweep(startFreq, endFreq, duration, type, volume) {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  try {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type || 'square';
+    osc.frequency.setValueAtTime(startFreq, ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(endFreq, ctx.currentTime + duration);
+    gain.gain.setValueAtTime(volume || 0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration);
+  } catch (e) {
+  }
+}
+
+function playArpeggio(notes, noteDuration, type, volume) {
+  notes.forEach(function (freq, i) {
+    setTimeout(function () { playTone(freq, noteDuration, type, volume); }, i * (noteDuration * 1000));
+  });
+}
+
 function playButtonSound() {
-  playTone(500, 0.05, 'sine', 0.04);
+  playTone(800, 0.04, 'square', 0.04);
 }
 
 function playRunSound() {
-  playTone(660, 0.1, 'sine', 0.1);
+  playToneSweep(440, 880, 0.08, 'square', 0.06);
 }
 
 function playBoundarySound() {
-  playTone(880, 0.15, 'sine', 0.12);
-  setTimeout(function () { playTone(1100, 0.15, 'sine', 0.1); }, 100);
+  playArpeggio([523, 659, 784], 0.1, 'square', 0.07);
+}
+
+function playSixSound() {
+  playArpeggio([523, 659, 784, 1047], 0.08, 'square', 0.07);
 }
 
 function playWicketSound() {
-  playTone(300, 0.3, 'sawtooth', 0.08);
-  setTimeout(function () { playTone(150, 0.4, 'sawtooth', 0.06); }, 150);
+  playToneSweep(300, 100, 0.35, 'triangle', 0.08);
+  setTimeout(function () { playNoise(0.1, 0.04); }, 50);
 }
 
 function playWinSound() {
-  [523, 659, 784, 1047].forEach(function (freq, i) {
-    setTimeout(function () { playTone(freq, 0.25, 'sine', 0.1); }, i * 150);
-  });
+  playArpeggio([523, 587, 659, 784, 1047], 0.15, 'square', 0.07);
 }
 
 function playChaseSound() {
-  [523, 659, 784].forEach(function (freq, i) {
-    setTimeout(function () { playTone(freq, 0.2, 'sine', 0.08); }, i * 120);
-  });
+  playArpeggio([440, 523, 659], 0.12, 'square', 0.06);
+}
+
+function playTossRevealSound() {
+  playArpeggio([330, 440, 523, 659], 0.06, 'triangle', 0.05);
 }
 
 if (typeof module !== 'undefined' && module.exports) {
@@ -67,8 +117,10 @@ if (typeof module !== 'undefined' && module.exports) {
     playButtonSound,
     playRunSound,
     playBoundarySound,
+    playSixSound,
     playWicketSound,
     playWinSound,
     playChaseSound,
+    playTossRevealSound,
   };
 }
