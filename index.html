@@ -32,6 +32,9 @@
         <button class="menu-btn secondary-btn" onclick="showAbout()">
           <span class="btn-icon">ℹ</span> ABOUT
         </button>
+        <button class="menu-btn secondary-btn" onclick="showChangelog()">
+          <span class="btn-icon">📋</span> CHANGELOG
+        </button>
       </div>
       <div class="menu-footer">
         <span class="menu-mode-label" id="menu-mode-label">SELECT MODE TO START</span>
@@ -92,6 +95,7 @@
         </button>
       </div>
       <div id="toss-result" class="toss-result"></div>
+      <button class="back-btn" onclick="showModeSelect()">← BACK</button>
     </div>
 
     <!-- CHOICE SCREEN -->
@@ -114,10 +118,12 @@
 
     <!-- PLAY SCREEN -->
     <div id="play-screen" class="screen hidden">
+      <div class="play-toolbar">
+        <button class="exit-btn" onclick="confirmExit()">✕ EXIT</button>
+      </div>
       <div class="play-layout">
         <div class="play-left">
           <div id="scoreboard" class="scoreboard"></div>
-          <div id="ball-history-area"></div>
           <div id="chase-info" class="chase-info hidden"></div>
           <div id="status" class="status"></div>
           <div id="last-ball" class="last-ball"></div>
@@ -129,12 +135,20 @@
             <button class="ball-btn" data-run="5" onclick="playBall(5)">5</button>
             <button class="ball-btn" data-run="6" onclick="playBall(6)">6</button>
           </div>
-          <div id="commentary-area"></div>
+          <div class="keyboard-hint">[&nbsp;1–6&nbsp;] to <span id="kb-action">bat</span> · [&nbsp;ESC&nbsp;] to close</div>
+          <div class="toggle-commentary-row" id="toggle-commentary-row" onclick="toggleCommentary()" title="Toggle commentary feed">
+            <span class="toggle-commentary-icon" id="toggle-commentary-icon">▼</span>
+            <span class="toggle-commentary-label">Commentary</span>
+          </div>
+          <div id="commentary-area"><div class="commentary-empty">Commentary will appear here</div></div>
         </div>
         <div class="play-right">
           <div id="ball-log" class="ball-log">
-            <h3>BALL LOG</h3>
-            <div id="ball-log-entries"></div>
+            <div class="ball-log-header">
+              <h3>BALL LOG</h3>
+              <button class="panel-toggle-btn" id="toggle-log-btn" onclick="toggleBallLog()" title="Toggle ball log panel" aria-label="Toggle ball log">▼</button>
+            </div>
+            <div id="ball-log-entries" class="ball-log-entries"><div class="ball-log-empty">No balls bowled yet</div></div>
           </div>
         </div>
       </div>
@@ -144,7 +158,10 @@
     <div id="result-screen" class="screen hidden">
       <h2 id="result-heading"></h2>
       <div id="result-details"></div>
-      <button class="play-again-btn" onclick="resetGame()">← MENU</button>
+      <div class="result-actions">
+        <button class="play-again-btn" onclick="playAgain()">▶ PLAY AGAIN</button>
+        <button class="secondary-btn menu-from-result-btn" onclick="resetGame()">← MENU</button>
+      </div>
     </div>
 
     <!-- EVENT MODAL -->
@@ -152,7 +169,10 @@
       <div class="modal-content">
         <h2 id="modal-heading"></h2>
         <div id="modal-body"></div>
-        <button id="modal-btn" onclick="onModalContinue()">CONTINUE</button>
+        <div class="modal-actions">
+          <button id="modal-btn" onclick="onModalContinue()">CONTINUE</button>
+          <button id="modal-btn-cancel" class="hidden" onclick="onModalCancel()">CANCEL</button>
+        </div>
       </div>
     </div>
   </div>

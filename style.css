@@ -4,6 +4,10 @@
   box-sizing: border-box;
 }
 
+.hidden {
+  display: none !important;
+}
+
 body {
   font-family: 'VT323', 'Courier New', monospace;
   background: #0a0f0a;
@@ -506,6 +510,37 @@ p, .screen-desc {
   flex-shrink: 0;
 }
 
+/* Play toolbar */
+.play-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.exit-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  background: rgba(255, 51, 51, 0.1);
+  color: #ff5555;
+  border: 1px solid rgba(255, 51, 51, 0.25);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  letter-spacing: 1px;
+}
+
+.exit-btn:hover {
+  background: rgba(255, 51, 51, 0.2);
+  border-color: #ff5555;
+  box-shadow: 0 0 12px rgba(255, 51, 51, 0.2);
+}
+
+.exit-btn:active {
+  transform: scale(0.95);
+}
+
 /* Scoreboard */
 .scoreboard {
   background: rgba(0, 0, 0, 0.4);
@@ -580,6 +615,14 @@ p, .screen-desc {
   text-shadow: 0 0 8px rgba(255, 51, 51, 0.5);
 }
 
+/* Keyboard hint */
+.keyboard-hint {
+  font-size: 0.75rem;
+  color: #556655;
+  padding: 0.2rem 0;
+  letter-spacing: 0.5px;
+}
+
 /* Ball buttons */
 .ball-grid {
   display: grid;
@@ -636,9 +679,27 @@ p, .screen-desc {
 }
 
 .ball-btn[data-run="6"]:hover {
-  border-color: #ffd700;
   color: #ffd700;
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.4);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.15);
+}
+
+.ball-btn:active {
+  transform: scale(0.92);
+}
+
+.ball-btn.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: default;
+}
+
+.ball-btn.disabled:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #8a9a8a;
+  box-shadow: none;
+  transform: none;
 }
 
 /* Result */
@@ -680,9 +741,39 @@ p, .screen-desc {
 }
 
 .result-overs {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: #556655;
-  margin-top: 0.3rem;
+}
+
+.result-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.menu-from-result-btn {
+  font-family: 'Press Start 2P', monospace;
+  padding: 0.7rem 1.5rem;
+  font-size: 0.55rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: #8a9a8a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  letter-spacing: 1px;
+}
+
+.menu-from-result-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #c8d6c8;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.menu-from-result-btn:active {
+  transform: scale(0.97);
 }
 
 .play-again-btn {
@@ -778,50 +869,139 @@ p, .screen-desc {
   transform: scale(0.97);
 }
 
-/* Ball history dots */
-.ball-history {
+.modal-actions {
   display: flex;
-  gap: 0.35rem;
-  flex-wrap: wrap;
+  gap: 0.75rem;
   justify-content: center;
-  margin: 0.4rem 0;
-  min-height: 1.6rem;
-}
-
-.ball-dot {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
+}
+
+.changelog-content {
+  text-align: left;
+  max-height: 50vh;
+  overflow-y: auto;
+  font-size: 0.9rem;
+}
+
+.changelog-content h3 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  color: #39ff14;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 8px rgba(57, 255, 20, 0.3);
+}
+
+.changelog-entry {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(57, 255, 20, 0.1);
+}
+
+.changelog-entry:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.changelog-content ul {
+  list-style: none;
+  padding: 0;
+}
+
+.changelog-content ul li {
+  position: relative;
+  padding-left: 1rem;
+  margin-bottom: 0.35rem;
+  color: #8a9a8a;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.changelog-content ul li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: #39ff14;
+}
+
+#modal-btn-cancel {
+  font-family: 'Press Start 2P', monospace;
+  padding: 0.7rem 1.5rem;
+  font-size: 0.55rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: #8a9a8a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  letter-spacing: 1px;
+}
+
+#modal-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #c8d6c8;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+#modal-btn-cancel:active {
+  transform: scale(0.97);
+}
+
+/* Thinking text for AI delay */
+.thinking-text {
+  font-size: 1.2rem;
+  color: #39ff14;
+  animation: thinking-pulse 0.8s ease-in-out infinite;
+  padding: 1rem 0;
+}
+
+@keyframes thinking-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.changelog-loading {
+  color: #556655;
+  font-size: 0.9rem;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+/* Toss tie loader */
+.toss-loader {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.toss-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(57, 255, 20, 0.12);
+  border-top-color: #39ff14;
   border-radius: 50%;
-  font-size: 0.65rem;
-  font-weight: bold;
-  color: #fff;
-  line-height: 1;
-  box-shadow: 0 0 4px currentColor;
+  animation: toss-spin 0.7s linear infinite;
 }
 
-.ball-dot-run {
-  background: #2e7d32;
-  box-shadow: 0 0 6px rgba(46, 125, 50, 0.4);
+@keyframes toss-spin {
+  to { transform: rotate(360deg); }
 }
 
-.ball-dot-four {
-  background: #0277bd;
-  box-shadow: 0 0 6px rgba(2, 119, 189, 0.4);
+.toss-loader-text {
+  font-size: 1rem;
+  color: #8a9a8a;
 }
 
-.ball-dot-six {
-  background: #f57c00;
-  box-shadow: 0 0 6px rgba(245, 124, 0, 0.4);
+.toss-retry-text {
+  font-size: 1.1rem;
+  color: #39ff14;
+  padding: 0.5rem 0;
+  text-shadow: 0 0 8px rgba(57, 255, 20, 0.3);
 }
 
-.ball-dot-out {
-  background: #d32f2f;
-  box-shadow: 0 0 6px rgba(211, 47, 47, 0.4);
-}
-
+/* Ball history dots */
 /* Flash animations */
 @keyframes flash-runs {
   0% { background-color: rgba(46, 125, 50, 0.2); border-radius: 6px; }
@@ -895,25 +1075,133 @@ p, .screen-desc {
   border-bottom: none;
 }
 
+.commentary-empty {
+  font-size: 0.8rem;
+  color: #556655;
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
 /* Ball log panel */
 .ball-log {
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   padding: 0.75rem;
-  max-height: 420px;
-  overflow-y: auto;
   text-align: left;
 }
 
-.ball-log h3 {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 0.55rem;
-  color: #39ff14;
+.ball-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 0.5rem;
   padding-bottom: 0.4rem;
   border-bottom: 1px solid rgba(57, 255, 20, 0.1);
+}
+
+.ball-log-header h3 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  color: #39ff14;
   letter-spacing: 1px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.panel-toggle-btn {
+  background: none;
+  border: 1px solid rgba(57, 255, 20, 0.2);
+  color: #39ff14;
+  font-size: 0.5rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+  font-family: 'VT323', monospace;
+}
+
+.panel-toggle-btn:hover {
+  background: rgba(57, 255, 20, 0.1);
+  border-color: rgba(57, 255, 20, 0.4);
+}
+
+.ball-log-entries {
+  transition: max-height 0.3s ease, opacity 0.25s ease, padding 0.3s ease;
+  max-height: 160px;
+  opacity: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(57, 255, 20, 0.2) transparent;
+}
+
+.ball-log-entries.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+  overflow-y: hidden;
+}
+
+.ball-log-entries::-webkit-scrollbar {
+  width: 4px;
+}
+
+.ball-log-entries::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ball-log-entries::-webkit-scrollbar-thumb {
+  background: rgba(57, 255, 20, 0.2);
+  border-radius: 2px;
+}
+
+.toggle-commentary-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  color: #556655;
+  cursor: pointer;
+  padding: 0.15rem 0;
+  margin-top: 0.1rem;
+  user-select: none;
+  transition: color 0.15s ease;
+}
+
+.toggle-commentary-row:hover {
+  color: #39ff14;
+}
+
+.toggle-commentary-icon {
+  display: inline-block;
+  transition: transform 0.25s ease;
+  font-size: 0.5rem;
+}
+
+.toggle-commentary-icon.collapsed {
+  transform: rotate(-90deg);
+}
+
+.toggle-commentary-label {
+  font-family: 'VT323', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+#commentary-area {
+  transition: max-height 0.3s ease, opacity 0.25s ease, margin 0.3s ease;
+  max-height: 5rem;
+  opacity: 1;
+  overflow: hidden;
+}
+
+#commentary-area.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
 }
 
 .ball-log-entry {
@@ -928,6 +1216,13 @@ p, .screen-desc {
 
 .ball-log-entry:last-child {
   border-bottom: none;
+}
+
+.ball-log-empty {
+  font-size: 0.85rem;
+  color: #556655;
+  text-align: center;
+  padding: 1rem 0;
 }
 
 .ball-log-ball {
@@ -967,19 +1262,16 @@ p, .screen-desc {
   box-shadow: 0 0 4px rgba(46, 125, 50, 0.4);
 }
 
-/* Scrollbar styling */
-.ball-log::-webkit-scrollbar,
+/* Commentary scrollbar */
 .commentary::-webkit-scrollbar {
   width: 4px;
 }
 
-.ball-log::-webkit-scrollbar-track,
 .commentary::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 2px;
 }
 
-.ball-log::-webkit-scrollbar-thumb,
 .commentary::-webkit-scrollbar-thumb {
   background: rgba(57, 255, 20, 0.2);
   border-radius: 2px;
@@ -1011,8 +1303,12 @@ p, .screen-desc {
     width: 100%;
   }
 
-  .ball-log {
-    max-height: 180px;
+  .ball-log-entries {
+    max-height: 120px;
+  }
+
+  .ball-log-entries.collapsed {
+    max-height: 0;
   }
 
   .ball-btn {
@@ -1060,12 +1356,6 @@ p, .screen-desc {
 
   .choice-btn {
     padding: 1.2rem 1.8rem;
-  }
-
-  .ball-dot {
-    width: 1.3rem;
-    height: 1.3rem;
-    font-size: 0.6rem;
   }
 
   .mode-cards {

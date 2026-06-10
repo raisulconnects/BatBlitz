@@ -55,6 +55,37 @@ describe('determineTossWinner', () => {
       expect(determineTossWinner('rock')).toBeNull();
     });
   });
+
+  describe('redo loop (tie breaker)', () => {
+    const picks = ['rock', 'paper', 'scissors'];
+
+    picks.forEach(function (userPick) {
+      test('user ' + userPick + ' always gets non-tie within 10 attempts', () => {
+        var result;
+        var attempts = 0;
+        do {
+          var aiPick = picks[Math.floor(Math.random() * 3)];
+          result = determineTossWinner(userPick, aiPick);
+          attempts++;
+        } while (result === 'tie' && attempts < 10);
+        expect(attempts).toBeLessThan(10);
+        expect(['user', 'ai']).toContain(result);
+      });
+    });
+
+    test('consecutive ties are resolved by re-picking AI choice', () => {
+      var result;
+      var attempts = 0;
+      do {
+        var aiPick = picks[Math.floor(Math.random() * 3)];
+        result = determineTossWinner('rock', aiPick);
+        attempts++;
+        if (result !== 'tie') break;
+      } while (attempts < 100);
+      expect(attempts).toBeLessThan(100);
+      expect(result).not.toBe('tie');
+    });
+  });
 });
 
 describe('formatOvers', () => {

@@ -8,13 +8,17 @@ BatBlitz is a turn-based browser cricket game built with vanilla HTML, CSS, and 
 ### Files
 | File | Purpose |
 |------|---------|
-| `index.html` | All screens: menu, mode-select, about, toss, choice, play (with ball log), result, event modal. CDN deps: Google Fonts, GSAP, tsParticles-confetti |
-| `style.css` | Dark neon theme with glassmorphism, CRT scanline overlay, ~40 CSS animations, two-column play layout, retro typography, responsive |
-| `script.js` | UI logic: GSAP-powered transitions, tsParticles confetti, screen shake, score/boundary/six particle effects, ball log stagger animation |
+| `index.html` | All screens: menu, mode-select, about, toss, choice, play (with ball log toggle, exit toolbar, keyboard hint, commentary toggle), result (with play-again + menu), event modal. CDN deps: Google Fonts, GSAP, tsParticles-confetti |
+| `style.css` | Dark neon theme with glassmorphism, CRT scanline overlay, ~40 CSS animations, two-column play layout, retro typography, responsive, exit-btn, disabled ball buttons, empty states, result-actions |
+| `script.js` | UI logic: GSAP-powered transitions, tsParticles confetti, screen shake, score/boundary/six particle effects, ball log stagger, sound persistence (localStorage), keyboard shortcuts (1-6 / Escape), exit confirmation, AI thinking delay, quick rematch, ball button disable states, exported helpers for testing |
 | `game-logic.js` | Pure logic: `getBallResult`, `shouldEndInnings`, `getChaseResult`, `determineTossWinner`, `getOppositeRole`, `formatOvers` |
 | `sounds.js` | 8-bit Web Audio API sounds using square/triangle/noise waves: 8 sound functions |
-| `game-logic.test.js` | 83 tests for pure logic |
-| `sounds.test.js` | 12 tests for sound functions |
+| `game-logic.test.js` | 78 tests for pure logic |
+| `sounds.test.js` | 11 tests for sound functions |
+| `ux.test.js` | 30 tests for UX helper functions: `getSavedSoundPreference`, `setSavedSoundPreference`, `getRunFromKey`, `isPlayBlocked` |
+| `ui.test.js` | 32 tests for UI toggles, ball log empty-message fix, toss back button, and changelog.json validation |
+| `changelog.json` | Dynamic changelog data consumed by `showChangelog()` |
+| `CHANGELOG.md` | Version history with all notable changes |
 
 ### External Dependencies (CDN)
 | Package | Purpose |
@@ -24,8 +28,11 @@ BatBlitz is a turn-based browser cricket game built with vanilla HTML, CSS, and 
 | `tsparticles-confetti` | Rich particle effects: star burst on six, sparkle ring on boundary, red burst on wicket, medal shower on win |
 
 ### Test Coverage
-- **Total**: 85 tests (83 game-logic + 12 sounds)
-- `shouldEndInnings`: 18 tests (10 original wicket + 5 over-limit normal + 3 over-limit edge)
+- **Total**: 151 tests (78 game-logic + 11 sounds + 30 ux + 32 ui)
+- `shouldEndInnings`: 18 tests
+- Toss redo loop: 4 tests verifying tie auto-retry always produces non-tie
+- UX helpers (`ux.test.js`): 30 tests across 4 functions with edge case coverage
+- UI toggles (`ui.test.js`): 32 tests covering ball log/commentary toggles, empty message removal, toss back button structure, changelog.json format validation
 - All other logic functions fully covered
 
 ### Game Flow
@@ -34,14 +41,14 @@ Menu → Mode Select → Toss (RPS) → Choice (bat/bowl) → Play → Result �
 ```
 
 ### Screens
-1. **Menu** — Glitch-text logo, neon "PLAY" button, About button, selected mode label
+1. **Menu** — Glitch-text logo, neon "PLAY" button, About button, CHANGELOG button, selected mode label
 2. **Mode Select** — Three glassmorphism cards (Quick/T20/Test) with hover glow
 3. **About** — Description and credits
 4. **Toss** — Rock Paper Scissors with hover scale + AI reveal sound
 5. **Choice** — Two neon "BAT" / "BOWL" buttons (green/red accent)
-6. **Play** — Two-column layout (game left, ball log right) with stadium scoreboard
-7. **Result** — Animated score cards + tsParticles confetti burst on win
-8. **Event Modal** — GSAP slide-down entrance, glassmorphism dark panel
+6. **Play** — Two-column layout (game left, ball log right) with stadium scoreboard, exit toolbar
+7. **Result** — Animated score cards + tsParticles confetti burst on win + play again buttons
+8. **Event Modal** — GSAP slide-down entrance, glassmorphism dark panel, dual buttons for confirm/cancel
 
 ## Game Modes
 
@@ -81,19 +88,22 @@ Formats as `overs.balls` (e.g., 13 balls → "2.1").
 ## Play Screen Layout
 
 ### Left Panel (`play-left`)
+- Exit toolbar (red "✕ EXIT" button)
 - Scoreboard (dark panel, neon green score, gold target badge, dimmed previous innings)
-- Ball history dots (colored circles with glow shadows)
 - Chase info banner (gold neon)
 - Status message (innings + role)
 - Last ball with flash animation (green/red/blue/orange highlight)
 - Ball grid (buttons 1–6 with hover glow, blue for "4", gold for "6")
-- Commentary area (dimmed monospace)
+- Keyboard hint ("[1-6] to bat/bowl · [ESC] to close")
+- Commentary toggle row (chevron icon + label, collapses/expands the feed)
+- Commentary area (dimmed monospace, collapsible, with empty state)
 
 ### Right Panel (`play-right`)
-- Ball Log panel with custom scrollbar
+- Ball Log panel with collapsible header toggle button
+- Entries container shows ~5 entries with scrollbar, scrolls overflow
 - Each entry: colored glow dot + ball number + description
 - GSAP staggered fade-in on new entries
-- Cleared between innings
+- Empty message shown when no balls bowled; auto-removed on first entry
 
 ## Sound System (`sounds.js`)
 8 8-bit style sound effects generated via Web Audio API:
@@ -125,6 +135,7 @@ All controlled by `soundEnabled` toggle.
 | `app-shake` | Wicket event (5 rapid oscillations) |
 | `crt-flicker` | CRT overlay (continuous) |
 | Flash animations | Last ball highlight (runs/four/six/out) |
+| `thinking-pulse` | AI thinking delay modal |
 | Button glow | Hover on all buttons |
 | Card lift | Hover on mode cards |
 | Modal entrance | Via GSAP (slide-down + bounce) |
@@ -168,6 +179,63 @@ const game = {
 };
 ```
 
+## UX Features (script.js helpers)
+
+### Exported Testable Helpers
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `getSavedSoundPreference` | `() → boolean` | Reads `batblitz-sound` from localStorage, defaults to `true` |
+| `setSavedSoundPreference` | `(val) → void` | Writes boolean to `batblitz-sound` in localStorage |
+| `getRunFromKey` | `(event) → number|null` | Maps keyboard event to 1-6 or null. Returns null for non-string keys, multi-char keys, or out-of-range |
+| `isPlayBlocked` | `(phase) → boolean` | Returns `true` if phase is not `'play'` (ball buttons disabled) |
+| `toggleBallLog` / `getBallLogVisible` | `→ boolean` | Toggles ball log panel collapsed state; getter returns current visibility |
+| `toggleCommentary` / `getCommentaryVisible` | `→ boolean` | Toggles commentary feed collapsed state; getter returns current visibility |
+| `renderBallLog` | `() → void` | Renders latest ball entry into the ball log container; strips empty message first |
+
+### Keyboard Shortcuts
+- **Keys `1`–`6`**: Play ball (batting) or bowl (bowling) + no modal open
+- **`Escape`**: Close event modal (if open)
+- Won't fire if modal is showing or phase isn't `'play'`
+
+### Exit Confirmation
+- Red "✕ EXIT" button in play screen toolbar
+- Shows confirmation modal: "Are you sure? All progress will be lost."
+- "YES, EXIT" → `resetGame()` → returns to menu
+- "CANCEL" → just closes modal (no-op)
+
+### Quick Rematch
+- Result screen has two buttons: "▶ PLAY AGAIN" and "← MENU"
+- "PLAY AGAIN" reuses current mode and goes straight to toss screen
+- "← MENU" resets everything and goes to menu
+
+### AI Thinking Delay
+- `showModalAfterDelay()` shows an empty modal with "..." button for 300-400ms before revealing the actual result
+- Builds tension for toss results, innings endings, and chase completions
+
+### Ball Button Disable States
+- `updateBallButtons()` adds/removes `.disabled` class on ball buttons:
+  - Disabled during modal (phase check)
+  - Disabled on non-play screens
+  - Disabled before innings start (no `currentInnings`)
+- Disabled buttons have `opacity: 0.35` + `pointer-events: none`
+- **Enabled both when user is batting AND bowling** (fixed bug where bowling was blocked)
+
+### Empty States
+- Commentary area shows "Commentary will appear here" when no balls bowled
+- Ball log shows "No balls bowled yet" when empty
+- Cleared and reset on new innings
+
+### Collapsible Panels
+- **Ball log** (right panel): Toggle button in the header collapses/expands the entries section with CSS transitions (`max-height` + `opacity` animation)
+- **Commentary feed** (below number pad): Toggle row with chevron icon collapses/expands the commentary area with smooth CSS animation
+- Both states persist to localStorage (`batblitz-balllog`, `batblitz-commentary`) and restore on page reload
+- Exported testable functions: `toggleBallLog`, `toggleCommentary`, `getBallLogVisible`, `getCommentaryVisible`
+
+### Sound Persistence
+- Initial value read from `localStorage.getItem('batblitz-sound')`
+- Written on every toggle via `setSavedSoundPreference()`
+- Withstands page refresh
+
 ## Innings Rules
 - Innings 1 ends when wickets or overs limit is reached → target set
 - Ball log cleared between innings
@@ -180,7 +248,7 @@ const game = {
 
 ## Technical Notes
 - No runtime frameworks (vanilla JS)
-- Jest for testing (85 tests)
+- Jest for testing (151 tests across 4 suites)
 - GSAP loaded from CDN for advanced animations
 - tsParticles-confetti loaded from CDN for particle effects
 - Google Fonts loaded from CDN for retro typography
@@ -189,3 +257,7 @@ const game = {
 - CRT overlay is a CSS pseudo-layer with scanlines and flicker animation
 - `shouldEndInnings` signature: `(wickets, wicketsLimit, balls?, ballsLimit?)`
 - `shouldEndInnings` is called for both innings; Innings 2 overs limit is checked there before `getChaseResult`
+- Changelog loaded dynamically from `changelog.json` via `fetch()` on button click
+- Ball log entries self-scroll with `overflow-y: auto` after ~5 entries; parent panel has no overflow
+- Toggle states persisted to localStorage (`batblitz-balllog`, `batblitz-commentary`)
+- `jest-environment-jsdom` installed for DOM-dependent UI tests
