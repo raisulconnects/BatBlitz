@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.2.0",
+    "entries": [
+      "Role indicator badge in header — shows '🏏 BATTING' (green) or '⚾ BOWLING' (red) next to BatBlitz title, updates with GSAP bounce animation on role change",
+      "Status display simplified — removed 'YOU ARE BATTING/BOWLING' from status area since header badge now shows the role",
+      "Text selection disabled globally — user-select: none applied to all elements for cleaner UI"
+    ]
+  },
+  {
     "version": "1.1.0",
     "entries": [
       "Century milestone effect — golden radial gradient full-screen overlay, 'CENTURY!' text with GSAP bounce, golden confetti cascade, strong screen shake",

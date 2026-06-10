@@ -7,6 +7,7 @@ var uiSettings = {
   ballLogVisible: true,
   commentaryVisible: true
 };
+var lastRoleIndicator = '';
 
 function loadUiSettings() {
   if (typeof localStorage !== 'undefined') {
@@ -803,8 +804,31 @@ function renderBallLog() {
   container.scrollTop = container.scrollHeight;
 }
 
+function updateRoleIndicator() {
+  var el = document.getElementById('role-indicator');
+  if (!el) return;
+  if (game.phase !== 'play' || !game.currentInnings || !game.userRole || !game.currentInnings.battingTeam) {
+    el.className = 'role-indicator idle';
+    el.textContent = '';
+    lastRoleIndicator = '';
+    return;
+  }
+  var isUserBatting = game.currentInnings.battingTeam === 'user';
+  var label = isUserBatting ? '\u{1F3CF}  BATTING' : '\u{2694}\u{FE0F}  BOWLING';
+  var roleClass = 'role-indicator ' + (isUserBatting ? 'batting' : 'bowling');
+  if (label !== lastRoleIndicator) {
+    el.className = roleClass;
+    el.textContent = label;
+    lastRoleIndicator = label;
+    if (gsapReady) {
+      gsap.fromTo(el, { opacity: 0, scale: 0.8, y: -6 }, { opacity: 1, scale: 1, y: 0, duration: 0.35, ease: 'back.out(2.5)' });
+    }
+  }
+}
+
 function render() {
   if (game.phase !== 'play') return;
+  updateRoleIndicator();
 
   var isInnings1 = game.currentInnings === game.innings1;
   var battingTeam = game.currentInnings.battingTeam;
@@ -844,10 +868,8 @@ function render() {
   if (game.message) {
     document.getElementById('status').innerHTML = '<div class="status-message">' + game.message + '</div>';
   } else {
-    var isUserBatting = battingTeam === 'user';
     var inningsLabel = isInnings1 ? 'INNINGS 1' : 'INNINGS 2';
-    var actionLabel = isUserBatting ? 'BATTING' : 'BOWLING';
-    document.getElementById('status').innerHTML = '<div class="status-message">' + inningsLabel + ' — YOU ARE ' + actionLabel + '.</div>';
+    document.getElementById('status').innerHTML = '<div class="status-message">' + inningsLabel + '</div>';
   }
 
   if (game.lastBall) {
@@ -991,6 +1013,8 @@ if (typeof module !== 'undefined' && module.exports) {
     triggerHalfCentury: triggerHalfCentury,
     triggerWicketGlow: triggerWicketGlow,
     triggerParticles: triggerParticles,
+    updateRoleIndicator: updateRoleIndicator,
+    lastRoleIndicator: lastRoleIndicator,
     game: game,
   };
 }

@@ -16,7 +16,7 @@ BatBlitz is a turn-based browser cricket game built with vanilla HTML, CSS, and 
 | `game-logic.test.js` | 78 tests for pure logic |
 | `sounds.test.js` | 11 tests for sound functions |
 | `ux.test.js` | 30 tests for UX helper functions: `getSavedSoundPreference`, `setSavedSoundPreference`, `getRunFromKey`, `isPlayBlocked` |
-| `ui.test.js` | 44 tests for UI toggles, ball log empty-message fix, toss back button, changelog.json validation, milestone effects (century/fifty overlay + wicket glow) |
+| `ui.test.js` | 51 tests for UI toggles, ball log empty-message fix, toss back button, changelog.json validation, milestone effects, role indicator, user-select CSS |
 | `changelog.json` | Dynamic changelog data consumed by `showChangelog()` |
 | `CHANGELOG.md` | Version history with all notable changes |
 
@@ -28,11 +28,11 @@ BatBlitz is a turn-based browser cricket game built with vanilla HTML, CSS, and 
 | `tsparticles-confetti` | Rich particle effects: star burst on six, sparkle ring on boundary, red burst on wicket, medal shower on win |
 
 ### Test Coverage
-- **Total**: 163 tests (78 game-logic + 11 sounds + 30 ux + 44 ui)
+- **Total**: 170 tests (78 game-logic + 11 sounds + 30 ux + 51 ui)
 - `shouldEndInnings`: 18 tests
 - Toss redo loop: 4 tests verifying tie auto-retry always produces non-tie
 - UX helpers (`ux.test.js`): 30 tests across 4 functions with edge case coverage
-- UI toggles (`ui.test.js`): 44 tests covering ball log/commentary toggles, empty message removal, toss back button structure, changelog.json format validation, milestone effects (triggerCentury, triggerHalfCentury, triggerWicketGlow), game milestones initial state
+- UI toggles (`ui.test.js`): 51 tests covering ball log/commentary toggles, empty message removal, toss back button structure, changelog.json format validation, milestone effects (triggerCentury, triggerHalfCentury, triggerWicketGlow), game milestones initial state, role indicator update, user-select CSS check
 - All other logic functions fully covered
 
 ### Game Flow
@@ -193,6 +193,14 @@ const game = {
 
 ## UX Features (script.js helpers)
 
+### Role Indicator
+- `.role-indicator` badge in header next to BatBlitz title
+- Shows `🏏 BATTING` (green neon) or `⚾ BOWLING` (red neon) during play
+- Automatically hides (`.idle`) on menu, toss, choice, and result screens
+- Updates with GSAP bounce animation when role changes (innings switch)
+- Powered by `updateRoleIndicator()` called inside `render()`
+- Tracks previous label via module-level `lastRoleIndicator` to avoid re-animating when nothing changed
+
 ### Exported Testable Helpers
 | Function | Signature | Description |
 |----------|-----------|-------------|
@@ -207,6 +215,7 @@ const game = {
 | `triggerHalfCentury` | `() → void` | Shows blue full-screen overlay with "FIFTY!" text, blue confetti, screen shake, auto-hides after 2s |
 | `triggerWicketGlow` | `() → void` | Adds red glassmorphism class to scoreboard element for 800ms |
 | `triggerParticles` | `(type) → void` | Fires confetti burst by type: six, four, wicket, win, century, fifty |
+| `updateRoleIndicator` | `() → void` | Updates header badge to show current role (BATTING/BOWLING) or idle state |
 | `game` | `→ Object` | Reference to the global game state object (for test inspection) |
 
 ### Keyboard Shortcuts

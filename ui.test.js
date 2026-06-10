@@ -11,6 +11,7 @@ var {
   triggerCentury,
   triggerHalfCentury,
   triggerWicketGlow,
+  updateRoleIndicator,
   game,
 } = require('./script');
 var fs = require('fs');
@@ -451,5 +452,86 @@ describe('game milestones', function () {
     expect(game.milestones).toBeDefined();
     expect(game.milestones.fifty).toBe(false);
     expect(game.milestones.hundred).toBe(false);
+  });
+});
+
+describe('updateRoleIndicator', function () {
+  var el;
+  var savedPhase;
+  var savedUserRole;
+  var savedCurrentInnings;
+
+  beforeAll(function () {
+    el = document.createElement('div');
+    el.id = 'role-indicator';
+    el.className = 'role-indicator idle';
+    document.body.appendChild(el);
+  });
+
+  afterAll(function () {
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  });
+
+  beforeEach(function () {
+    savedPhase = game.phase;
+    savedUserRole = game.userRole;
+    savedCurrentInnings = game.currentInnings;
+    el.className = 'role-indicator idle';
+    el.textContent = '';
+  });
+
+  test('shows bowling indicator when user is bowling', function () {
+    game.phase = 'play';
+    game.userRole = 'bowl';
+    game.currentInnings = { battingTeam: 'ai' };
+    updateRoleIndicator();
+    expect(el.textContent).toContain('BOWLING');
+    expect(el.classList.contains('bowling')).toBe(true);
+    expect(el.classList.contains('idle')).toBe(false);
+  });
+
+  test('goes idle when phase is not play', function () {
+    game.phase = 'menu';
+    game.userRole = 'bat';
+    game.currentInnings = { battingTeam: 'user' };
+    updateRoleIndicator();
+    expect(el.classList.contains('idle')).toBe(true);
+    expect(el.textContent).toBe('');
+  });
+
+  test('goes idle when userRole is null', function () {
+    game.phase = 'play';
+    game.userRole = null;
+    game.currentInnings = { battingTeam: 'user' };
+    updateRoleIndicator();
+    expect(el.classList.contains('idle')).toBe(true);
+  });
+
+  test('goes idle when currentInnings is null', function () {
+    game.phase = 'play';
+    game.userRole = 'bat';
+    game.currentInnings = null;
+    updateRoleIndicator();
+    expect(el.classList.contains('idle')).toBe(true);
+  });
+
+  test('goes idle when battingTeam is undefined', function () {
+    game.phase = 'play';
+    game.userRole = 'bat';
+    game.currentInnings = {};
+    updateRoleIndicator();
+    expect(el.classList.contains('idle')).toBe(true);
+  });
+});
+
+describe('text selection disabled', function () {
+  test('style.css sets user-select none on universal selector', function () {
+    var cssText = fs.readFileSync(path.resolve(__dirname, 'style.css'), 'utf8');
+    expect(cssText).toContain('user-select: none');
+  });
+
+  test('style.css sets -webkit-user-select none on universal selector', function () {
+    var cssText = fs.readFileSync(path.resolve(__dirname, 'style.css'), 'utf8');
+    expect(cssText).toContain('-webkit-user-select: none');
   });
 });
