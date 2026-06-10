@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cricket Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>🏏 Cricket Game</h1>
+    </header>
+
+    <!-- TOSS SCREEN -->
+    <div id="toss-screen" class="screen">
+      <h2>Toss — Rock Paper Scissors!</h2>
+      <p>Winner chooses to bat or bowl first.</p>
+      <div class="rps-buttons">
+        <button class="rps-btn" onclick="startToss('rock')">🪨<span>Rock</span></button>
+        <button class="rps-btn" onclick="startToss('paper')">📄<span>Paper</span></button>
+        <button class="rps-btn" onclick="startToss('scissors')">✂️<span>Scissors</span></button>
+      </div>
+      <div id="toss-result" class="toss-result"></div>
+    </div>
+
+    <!-- CHOICE SCREEN -->
+    <div id="choice-screen" class="screen hidden">
+      <h2>You won the toss!</h2>
+      <p>What do you want to do first?</p>
+      <div class="choice-buttons">
+        <button class="choice-btn" onclick="chooseRole('bat')">🏏 Bat First</button>
+        <button class="choice-btn" onclick="chooseRole('bowl')">⚾ Bowl First</button>
+      </div>
+    </div>
+
+    <!-- PLAY SCREEN -->
+    <div id="play-screen" class="screen hidden">
+      <div id="scoreboard" class="scoreboard"></div>
+      <div id="status" class="status"></div>
+      <div id="last-ball" class="last-ball"></div>
+      <div class="ball-grid">
+        <button class="ball-btn" onclick="playBall(1)">1</button>
+        <button class="ball-btn" onclick="playBall(2)">2</button>
+        <button class="ball-btn" onclick="playBall(3)">3</button>
+        <button class="ball-btn" onclick="playBall(4)">4</button>
+        <button class="ball-btn" onclick="playBall(5)">5</button>
+        <button class="ball-btn" onclick="playBall(6)">6</button>
+      </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="result-screen" class="screen hidden">
+      <h2 id="result-heading"></h2>
+      <div id="result-details"></div>
+      <button class="play-again-btn" onclick="resetGame()">Play Again</button>
+    </div>
+
+    <!-- EVENT MODAL (overlay) -->
+    <div id="event-modal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h2 id="modal-heading"></h2>
+        <div id="modal-body"></div>
+        <button id="modal-btn" onclick="onModalContinue()">Continue</button>
+      </div>
+    </div>
+  </div>
+  <script src="game-logic.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
