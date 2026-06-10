@@ -1,5 +1,14 @@
 [
   {
+    "version": "1.1.0",
+    "entries": [
+      "Century milestone effect — golden radial gradient full-screen overlay, 'CENTURY!' text with GSAP bounce, golden confetti cascade, strong screen shake",
+      "Half-century milestone effect — blue/silver radial gradient overlay, 'FIFTY!' text with GSAP bounce, blue confetti burst, moderate screen shake",
+      "Wicket glassmorphism effect — red glass overlay on scoreboard with pulsing shadow and border highlight, auto-fades after 800ms",
+      "Milestone tracking — game.milestones object prevents repeated triggering of fifty/hundred celebrations"
+    ]
+  },
+  {
     "version": "1.0.0",
     "entries": [
       "Ball log panel no longer shows duplicate empty message when entries exist",

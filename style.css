@@ -60,6 +60,71 @@ body {
   z-index: 9998;
 }
 
+/* Milestone overlay (century / half-century) */
+.milestone-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9997;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.milestone-overlay.hidden {
+  display: none;
+}
+
+.milestone-text {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 2.5rem;
+  opacity: 0;
+  letter-spacing: 6px;
+  position: absolute;
+  top: 25%;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  pointer-events: none;
+}
+
+.milestone-text.century-text {
+  color: #ffd700;
+  text-shadow:
+    0 0 30px rgba(255, 215, 0, 0.8),
+    0 0 60px rgba(255, 215, 0, 0.4),
+    0 0 100px rgba(255, 215, 0, 0.2);
+}
+
+.milestone-text.fifty-text {
+  color: #64c8ff;
+  text-shadow:
+    0 0 20px rgba(100, 200, 255, 0.6),
+    0 0 40px rgba(100, 200, 255, 0.3);
+}
+
+/* Wicket red glassmorphism */
+.scoreboard.wicket-glow {
+  background: rgba(30, 10, 10, 0.5) !important;
+  border-color: rgba(255, 0, 0, 0.4) !important;
+  box-shadow:
+    0 0 30px rgba(255, 0, 0, 0.3),
+    inset 0 0 30px rgba(255, 0, 0, 0.1),
+    0 0 60px rgba(255, 0, 0, 0.1) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: wicket-glass-pulse 0.6s ease-out;
+}
+
+@keyframes wicket-glass-pulse {
+  0%   { background: rgba(255, 0, 0, 0.2); }
+  50%  { background: rgba(255, 0, 0, 0.08); }
+  100% { background: rgba(30, 10, 10, 0.5); }
+}
+
 #app {
   background: rgba(20, 30, 20, 0.85);
   backdrop-filter: blur(12px);
@@ -318,6 +383,63 @@ p, .screen-desc {
 .mode-card[data-mode="quick"] .mode-icon { color: #39ff14; }
 .mode-card[data-mode="t20"] .mode-icon { color: #ffd700; }
 .mode-card[data-mode="test"] .mode-icon { color: #ff6b6b; }
+
+.mode-card-coming-soon {
+  cursor: pointer;
+  border-color: rgba(255, 255, 255, 0.05);
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.mode-card-coming-soon:hover {
+  opacity: 0.85;
+  border-color: rgba(147, 112, 219, 0.4);
+  background: rgba(147, 112, 219, 0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 0 16px rgba(147, 112, 219, 0.08);
+}
+
+.mode-card-coming-soon:hover::before {
+  opacity: 1;
+  background: radial-gradient(circle, rgba(147, 112, 219, 0.06) 0%, transparent 60%);
+}
+
+.mode-card-coming-soon .mode-icon {
+  color: #9370db;
+}
+
+.mode-card-coming-soon .mode-name {
+  color: #9370db;
+}
+
+.mode-card-coming-soon .mode-desc {
+  color: #6a5a8a;
+  font-style: italic;
+}
+
+.coming-soon-content {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.coming-soon-icon {
+  font-size: 3rem;
+  margin-bottom: 0.75rem;
+  filter: drop-shadow(0 0 10px rgba(147, 112, 219, 0.3));
+}
+
+.coming-soon-text {
+  font-size: 1rem;
+  color: #c8d6c8;
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.coming-soon-sub {
+  font-size: 0.85rem;
+  color: #556655;
+  line-height: 1.5;
+}
 
 .mode-icon {
   font-size: 2.2rem;

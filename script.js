@@ -227,6 +227,61 @@ function screenShake() {
   }
 }
 
+function triggerCentury() {
+  var overlay = document.getElementById('milestone-overlay');
+  var textEl = document.getElementById('milestone-text');
+  if (!overlay || !textEl) return;
+  textEl.textContent = '🎯 CENTURY!';
+  textEl.className = 'milestone-text century-text';
+  overlay.className = 'milestone-overlay';
+  overlay.style.background = 'radial-gradient(circle at center, rgba(255,215,0,0.4) 0%, rgba(255,215,0,0.12) 30%, transparent 70%)';
+  if (soundEnabled && typeof playSixSound === 'function') playSixSound();
+  overlay.classList.remove('hidden');
+  if (gsapReady) {
+    gsap.fromTo(overlay, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.45, ease: 'power3.out' });
+    gsap.fromTo(textEl, { opacity: 0, scale: 0.3, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: 0.6, delay: 0.15, ease: 'back.out(2.5)' });
+    gsap.to('#app', { x: '+=8', repeat: 7, yoyo: true, duration: 0.04, ease: 'power2.inOut' });
+  }
+  triggerParticles('century');
+  setTimeout(function () {
+    overlay.classList.add('hidden');
+    if (gsapReady) gsap.set(overlay, { clearProps: 'all' });
+  }, 2200);
+}
+
+function triggerHalfCentury() {
+  var overlay = document.getElementById('milestone-overlay');
+  var textEl = document.getElementById('milestone-text');
+  if (!overlay || !textEl) return;
+  textEl.textContent = '🎯 FIFTY!';
+  textEl.className = 'milestone-text fifty-text';
+  overlay.className = 'milestone-overlay';
+  overlay.style.background = 'radial-gradient(circle at center, rgba(100,200,255,0.3) 0%, rgba(100,200,255,0.08) 30%, transparent 70%)';
+  if (soundEnabled && typeof playBoundarySound === 'function') playBoundarySound();
+  overlay.classList.remove('hidden');
+  if (gsapReady) {
+    gsap.fromTo(overlay, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.35, ease: 'power3.out' });
+    gsap.fromTo(textEl, { opacity: 0, scale: 0.4, y: 15 }, { opacity: 1, scale: 1, y: 0, duration: 0.5, delay: 0.1, ease: 'back.out(2)' });
+    gsap.to('#app', { x: '+=5', repeat: 5, yoyo: true, duration: 0.04, ease: 'power2.inOut' });
+  }
+  triggerParticles('fifty');
+  setTimeout(function () {
+    overlay.classList.add('hidden');
+    if (gsapReady) gsap.set(overlay, { clearProps: 'all' });
+  }, 2000);
+}
+
+function triggerWicketGlow() {
+  var sb = document.getElementById('scoreboard');
+  if (!sb) return;
+  sb.classList.remove('wicket-glow');
+  void sb.offsetWidth;
+  sb.classList.add('wicket-glow');
+  setTimeout(function () {
+    sb.classList.remove('wicket-glow');
+  }, 800);
+}
+
 function triggerParticles(type) {
   if (typeof confetti !== 'function') return;
   if (type === 'six') {
@@ -241,6 +296,13 @@ function triggerParticles(type) {
     setTimeout(function () {
       confetti({ particleCount: 100, spread: 80, origin: { y: 0.3 }, colors: ['#ffd700', '#ffffff'] });
     }, 250);
+  } else if (type === 'century') {
+    confetti({ particleCount: 80, spread: 120, origin: { y: 0.4 }, colors: ['#ffd700', '#ffea00', '#ffffff'] });
+    setTimeout(function () { confetti({ particleCount: 40, spread: 90, origin: { y: 0.5 }, colors: ['#ffd700', '#ffaa00'] }); }, 200);
+    setTimeout(function () { confetti({ particleCount: 20, spread: 60, origin: { y: 0.6 }, colors: ['#ffffff'] }); }, 400);
+  } else if (type === 'fifty') {
+    confetti({ particleCount: 40, spread: 90, origin: { y: 0.5 }, colors: ['#64c8ff', '#03a9f4', '#ffffff'] });
+    setTimeout(function () { confetti({ particleCount: 20, spread: 60, origin: { y: 0.5 }, colors: ['#64c8ff', '#b3e5fc'] }); }, 200);
   }
 }
 
@@ -316,6 +378,7 @@ const game = {
   lastBall: null,
   ballHistory: [],
   message: '',
+  milestones: { fifty: false, hundred: false },
 };
 
 function showMenu() {
@@ -353,6 +416,19 @@ function showChangelog() {
   }).catch(function () {
     document.getElementById('modal-body').innerHTML = '<div class="changelog-content"><p class="changelog-loading">Failed to load changelog.</p></div>';
   });
+}
+
+function showMultiplayerComingSoon() {
+  playButtonSound();
+  showModal(
+    '👥 MULTIPLAYER',
+    '<div class="coming-soon-content">' +
+      '<div class="coming-soon-icon">🚧</div>' +
+      '<p class="coming-soon-text">We\'re working on bringing multiplayer to BatBlitz!</p>' +
+      '<p class="coming-soon-sub">Play against your friends in real-time matches. Stay tuned for updates.</p>' +
+    '</div>',
+    'GOT IT'
+  );
 }
 
 function selectMode(mode) {
@@ -461,6 +537,7 @@ function initInnings() {
   game.currentInnings.balls = 0;
   game.lastBall = null;
   game.ballHistory = [];
+  game.milestones = { fifty: false, hundred: false };
   game.result = null;
   document.getElementById('ball-log-entries').innerHTML = '<div class="ball-log-empty">No balls bowled yet</div>';
   document.getElementById('commentary-area').innerHTML = '<div class="commentary-empty">Commentary will appear here</div>';
@@ -492,8 +569,17 @@ function playBall(userPick) {
 
   if (result.isOut) {
     game.currentInnings.wickets++;
+    triggerWicketGlow();
   } else {
     game.currentInnings.score += result.runs;
+    if (!game.milestones.fifty && game.currentInnings.score >= 50) {
+      game.milestones.fifty = true;
+      triggerHalfCentury();
+    }
+    if (!game.milestones.hundred && game.currentInnings.score >= 100) {
+      game.milestones.hundred = true;
+      triggerCentury();
+    }
   }
 
   game.lastBall = {
@@ -901,5 +987,10 @@ if (typeof module !== 'undefined' && module.exports) {
     getBallLogVisible: getBallLogVisible,
     getCommentaryVisible: getCommentaryVisible,
     renderBallLog: renderBallLog,
+    triggerCentury: triggerCentury,
+    triggerHalfCentury: triggerHalfCentury,
+    triggerWicketGlow: triggerWicketGlow,
+    triggerParticles: triggerParticles,
+    game: game,
   };
 }

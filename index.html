@@ -12,6 +12,9 @@
 <body>
   <div id="crt-overlay"></div>
   <div id="particle-container"></div>
+  <div id="milestone-overlay" class="milestone-overlay hidden">
+    <div id="milestone-text" class="milestone-text"></div>
+  </div>
   <div id="app">
     <header>
       <h1>BatBlitz</h1>
@@ -60,6 +63,11 @@
           <span class="mode-icon">🏆</span>
           <span class="mode-name">TEST</span>
           <span class="mode-desc">10 wickets · unlimited</span>
+        </div>
+        <div class="mode-card mode-card-coming-soon" data-mode="multiplayer" onclick="showMultiplayerComingSoon()">
+          <span class="mode-icon">👥</span>
+          <span class="mode-name">MULTIPLAYER</span>
+          <span class="mode-desc">Coming soon</span>
         </div>
       </div>
       <button class="back-btn" onclick="showMenu()">← BACK</button>

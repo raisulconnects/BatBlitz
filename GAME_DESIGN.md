@@ -16,7 +16,7 @@ BatBlitz is a turn-based browser cricket game built with vanilla HTML, CSS, and 
 | `game-logic.test.js` | 78 tests for pure logic |
 | `sounds.test.js` | 11 tests for sound functions |
 | `ux.test.js` | 30 tests for UX helper functions: `getSavedSoundPreference`, `setSavedSoundPreference`, `getRunFromKey`, `isPlayBlocked` |
-| `ui.test.js` | 32 tests for UI toggles, ball log empty-message fix, toss back button, and changelog.json validation |
+| `ui.test.js` | 44 tests for UI toggles, ball log empty-message fix, toss back button, changelog.json validation, milestone effects (century/fifty overlay + wicket glow) |
 | `changelog.json` | Dynamic changelog data consumed by `showChangelog()` |
 | `CHANGELOG.md` | Version history with all notable changes |
 
@@ -28,11 +28,11 @@ BatBlitz is a turn-based browser cricket game built with vanilla HTML, CSS, and 
 | `tsparticles-confetti` | Rich particle effects: star burst on six, sparkle ring on boundary, red burst on wicket, medal shower on win |
 
 ### Test Coverage
-- **Total**: 151 tests (78 game-logic + 11 sounds + 30 ux + 32 ui)
+- **Total**: 163 tests (78 game-logic + 11 sounds + 30 ux + 44 ui)
 - `shouldEndInnings`: 18 tests
 - Toss redo loop: 4 tests verifying tie auto-retry always produces non-tie
 - UX helpers (`ux.test.js`): 30 tests across 4 functions with edge case coverage
-- UI toggles (`ui.test.js`): 32 tests covering ball log/commentary toggles, empty message removal, toss back button structure, changelog.json format validation
+- UI toggles (`ui.test.js`): 44 tests covering ball log/commentary toggles, empty message removal, toss back button structure, changelog.json format validation, milestone effects (triggerCentury, triggerHalfCentury, triggerWicketGlow), game milestones initial state
 - All other logic functions fully covered
 
 ### Game Flow
@@ -140,6 +140,11 @@ All controlled by `soundEnabled` toggle.
 | Card lift | Hover on mode cards |
 | Modal entrance | Via GSAP (slide-down + bounce) |
 
+### Milestone Visual Effects
+- **Half-century (50 runs)**: Blue/silver radial gradient full-screen overlay, "🎯 FIFTY!" text with GSAP bounce-in, blue/silver confetti burst (40 + 20 particles), moderate screen shake, `playBoundarySound` jingle. Auto-fades after 2s.
+- **Century (100 runs)**: Golden radial gradient full-screen overlay, "🎯 CENTURY!" text with GSAP bounce-in, golden confetti cascade (80 + 40 + 20 particles), strong screen shake, `playSixSound` fanfare. Auto-fades after 2.2s.
+- **Wicket**: Red glassmorphism (`backdrop-filter: blur(4px)`) effect applied to the scoreboard element with a pulsing box-shadow and border highlight. Class applied for 800ms via `setTimeout`. Uses CSS animation `wicket-glass-pulse`.
+
 ### GSAP-Powered JS Animations
 - **Screen transitions**: Directional slide (`x: ±40`, `opacity`) with `0.3s ease`
 - **Scoreboard refresh**: Opacity + y bounce on each update
@@ -148,12 +153,15 @@ All controlled by `soundEnabled` toggle.
 - **Screen shake**: `translateX` wiggle (`±6px`, 5 repeats, `0.16s`)
 - **Modal entrance**: `y: -50→0` + `scale: 0.9→1` with `back.out(1.7)` ease
 - **Result cards**: `y: 30→0` stagger with `0.15s` delay between
+- **Century/fifty overlay**: Radial gradient burst scale-up + text bounce-in (`back.out(2.5)`)
 
 ### tsParticles Effects
 - **Six**: Gold star burst (30 particles, `spread: 90`)
 - **Four**: Blue sparkle ring (15 particles, `spread: 60`)
 - **Wicket**: Red burst (20 particles, `spread: 45`)
 - **Win**: Multi-color confetti shower (200 + 100 particles in sequence)
+- **Century**: Golden confetti cascade (80 + 40 + 20 particles in sequence)
+- **Fifty**: Blue/silver confetti burst (40 + 20 particles in sequence)
 
 ## State (`script.js`)
 
@@ -176,6 +184,10 @@ const game = {
   ballHistory: [],         // max 30 entries
   result: null,            // 'user' | 'ai' | null
   message: '',
+  milestones: {            // tracks which score milestones have triggered
+    fifty: false,
+    hundred: false,
+  },
 };
 ```
 
@@ -191,6 +203,11 @@ const game = {
 | `toggleBallLog` / `getBallLogVisible` | `→ boolean` | Toggles ball log panel collapsed state; getter returns current visibility |
 | `toggleCommentary` / `getCommentaryVisible` | `→ boolean` | Toggles commentary feed collapsed state; getter returns current visibility |
 | `renderBallLog` | `() → void` | Renders latest ball entry into the ball log container; strips empty message first |
+| `triggerCentury` | `() → void` | Shows golden full-screen overlay with "CENTURY!" text, golden confetti, screen shake, auto-hides after 2.2s |
+| `triggerHalfCentury` | `() → void` | Shows blue full-screen overlay with "FIFTY!" text, blue confetti, screen shake, auto-hides after 2s |
+| `triggerWicketGlow` | `() → void` | Adds red glassmorphism class to scoreboard element for 800ms |
+| `triggerParticles` | `(type) → void` | Fires confetti burst by type: six, four, wicket, win, century, fifty |
+| `game` | `→ Object` | Reference to the global game state object (for test inspection) |
 
 ### Keyboard Shortcuts
 - **Keys `1`–`6`**: Play ball (batting) or bowl (bowling) + no modal open

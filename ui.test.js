@@ -8,6 +8,10 @@ var {
   getBallLogVisible,
   getCommentaryVisible,
   renderBallLog,
+  triggerCentury,
+  triggerHalfCentury,
+  triggerWicketGlow,
+  game,
 } = require('./script');
 var fs = require('fs');
 var path = require('path');
@@ -290,5 +294,162 @@ describe('changelog.json', function () {
         expect(data[i].entries[j].length).toBeGreaterThan(0);
       }
     }
+  });
+});
+
+describe('triggerCentury', function () {
+  var overlay;
+  var textEl;
+
+  beforeAll(function () {
+    overlay = document.createElement('div');
+    overlay.id = 'milestone-overlay';
+    overlay.className = 'milestone-overlay hidden';
+    document.body.appendChild(overlay);
+    textEl = document.createElement('div');
+    textEl.id = 'milestone-text';
+    textEl.className = 'milestone-text';
+    document.body.appendChild(textEl);
+  });
+
+  afterAll(function () {
+    if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    if (textEl && textEl.parentNode) textEl.parentNode.removeChild(textEl);
+  });
+
+  beforeEach(function () {
+    overlay.className = 'milestone-overlay hidden';
+    overlay.style.background = '';
+    textEl.className = 'milestone-text';
+    textEl.textContent = '';
+  });
+
+  test('is a function', function () {
+    expect(typeof triggerCentury).toBe('function');
+  });
+
+  test('shows overlay and sets century text', function () {
+    triggerCentury();
+    expect(overlay.classList.contains('hidden')).toBe(false);
+    expect(textEl.textContent).toContain('CENTURY');
+    expect(textEl.classList.contains('century-text')).toBe(true);
+  });
+
+  test('hides overlay after timeout', function () {
+    jest.useFakeTimers();
+    triggerCentury();
+    expect(overlay.classList.contains('hidden')).toBe(false);
+    jest.advanceTimersByTime(2200);
+    expect(overlay.classList.contains('hidden')).toBe(true);
+    jest.useRealTimers();
+  });
+
+  test('sets golden background', function () {
+    triggerCentury();
+    expect(overlay.style.background).toContain('rgba(255,215,0');
+  });
+});
+
+describe('triggerHalfCentury', function () {
+  var overlay;
+  var textEl;
+
+  beforeAll(function () {
+    overlay = document.getElementById('milestone-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'milestone-overlay';
+      overlay.className = 'milestone-overlay hidden';
+      document.body.appendChild(overlay);
+    }
+    textEl = document.getElementById('milestone-text');
+    if (!textEl) {
+      textEl = document.createElement('div');
+      textEl.id = 'milestone-text';
+      textEl.className = 'milestone-text';
+      document.body.appendChild(textEl);
+    }
+  });
+
+  afterAll(function () {
+    if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    if (textEl && textEl.parentNode) textEl.parentNode.removeChild(textEl);
+  });
+
+  beforeEach(function () {
+    overlay.className = 'milestone-overlay hidden';
+    overlay.style.background = '';
+    textEl.className = 'milestone-text';
+    textEl.textContent = '';
+  });
+
+  test('is a function', function () {
+    expect(typeof triggerHalfCentury).toBe('function');
+  });
+
+  test('shows overlay and sets fifty text', function () {
+    triggerHalfCentury();
+    expect(overlay.classList.contains('hidden')).toBe(false);
+    expect(textEl.textContent).toContain('FIFTY');
+    expect(textEl.classList.contains('fifty-text')).toBe(true);
+  });
+
+  test('hides overlay after timeout', function () {
+    jest.useFakeTimers();
+    triggerHalfCentury();
+    expect(overlay.classList.contains('hidden')).toBe(false);
+    jest.advanceTimersByTime(2000);
+    expect(overlay.classList.contains('hidden')).toBe(true);
+    jest.useRealTimers();
+  });
+
+  test('sets blue background', function () {
+    triggerHalfCentury();
+    expect(overlay.style.background).toContain('rgba(100,200,255');
+  });
+});
+
+describe('triggerWicketGlow', function () {
+  var scoreboard;
+
+  beforeAll(function () {
+    scoreboard = document.createElement('div');
+    scoreboard.id = 'scoreboard';
+    scoreboard.className = 'scoreboard';
+    document.body.appendChild(scoreboard);
+  });
+
+  afterAll(function () {
+    if (scoreboard && scoreboard.parentNode) scoreboard.parentNode.removeChild(scoreboard);
+  });
+
+  beforeEach(function () {
+    scoreboard.classList.remove('wicket-glow');
+  });
+
+  test('is a function', function () {
+    expect(typeof triggerWicketGlow).toBe('function');
+  });
+
+  test('adds wicket-glow class to scoreboard', function () {
+    triggerWicketGlow();
+    expect(scoreboard.classList.contains('wicket-glow')).toBe(true);
+  });
+
+  test('removes wicket-glow class after timeout', function () {
+    jest.useFakeTimers();
+    triggerWicketGlow();
+    expect(scoreboard.classList.contains('wicket-glow')).toBe(true);
+    jest.advanceTimersByTime(800);
+    expect(scoreboard.classList.contains('wicket-glow')).toBe(false);
+    jest.useRealTimers();
+  });
+});
+
+describe('game milestones', function () {
+  test('initializes with fifty and hundred as false', function () {
+    expect(game.milestones).toBeDefined();
+    expect(game.milestones.fifty).toBe(false);
+    expect(game.milestones.hundred).toBe(false);
   });
 });
