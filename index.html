@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cricket Game</title>
+  <title>BatBlitz</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,8 +13,54 @@
       <button id="sound-toggle" onclick="toggleSound()" title="Toggle Sound">🔊</button>
     </header>
 
+    <!-- MENU SCREEN -->
+    <div id="menu-screen" class="screen">
+      <div class="menu-hero">
+        <h2>Welcome to BatBlitz</h2>
+        <p>A fast-paced cricket game for quick sessions</p>
+      </div>
+      <div class="menu-buttons">
+        <button class="menu-btn primary-btn" onclick="showModeSelect()">▶ Play</button>
+        <button class="menu-btn secondary-btn" onclick="showAbout()">ℹ About</button>
+      </div>
+    </div>
+
+    <!-- MODE SELECT SCREEN -->
+    <div id="mode-screen" class="screen hidden">
+      <h2>Select Mode</h2>
+      <div class="mode-cards">
+        <div class="mode-card" onclick="selectMode('quick')">
+          <span class="mode-icon">⚡</span>
+          <span class="mode-name">Quick Match</span>
+          <span class="mode-desc">1 wicket, unlimited overs — fast fun</span>
+        </div>
+        <div class="mode-card" onclick="selectMode('t20')">
+          <span class="mode-icon">🏏</span>
+          <span class="mode-name">T20</span>
+          <span class="mode-desc">10 wickets, 20 overs per side</span>
+        </div>
+        <div class="mode-card" onclick="selectMode('test')">
+          <span class="mode-icon">🏆</span>
+          <span class="mode-name">Test Match</span>
+          <span class="mode-desc">10 wickets, unlimited overs</span>
+        </div>
+      </div>
+      <button class="back-btn" onclick="showMenu()">← Back</button>
+    </div>
+
+    <!-- ABOUT SCREEN -->
+    <div id="about-screen" class="screen hidden">
+      <h2>About BatBlitz</h2>
+      <div class="about-content">
+        <p>BatBlitz is a turn-based cricket game where you play quick matches against the computer. Choose your mode, win the toss, and decide whether to bat or bowl first.</p>
+        <p>Built with vanilla HTML, CSS, and JavaScript. No frameworks, no runtime — just pure fun.</p>
+        <p class="credits">Created by Raisul Connects · 2026</p>
+      </div>
+      <button class="back-btn" onclick="showMenu()">← Back</button>
+    </div>
+
     <!-- TOSS SCREEN -->
-    <div id="toss-screen" class="screen">
+    <div id="toss-screen" class="screen hidden">
       <h2>Toss — Rock Paper Scissors!</h2>
       <p>Winner chooses to bat or bowl first.</p>
       <div class="rps-buttons">
@@ -37,27 +83,37 @@
 
     <!-- PLAY SCREEN -->
     <div id="play-screen" class="screen hidden">
-      <div id="scoreboard" class="scoreboard"></div>
-      <div id="ball-history-area"></div>
-      <div id="chase-info" class="chase-info hidden"></div>
-      <div id="status" class="status"></div>
-      <div id="last-ball" class="last-ball"></div>
-      <div class="ball-grid">
-        <button class="ball-btn" onclick="playBall(1)">1</button>
-        <button class="ball-btn" onclick="playBall(2)">2</button>
-        <button class="ball-btn" onclick="playBall(3)">3</button>
-        <button class="ball-btn" onclick="playBall(4)">4</button>
-        <button class="ball-btn" onclick="playBall(5)">5</button>
-        <button class="ball-btn" onclick="playBall(6)">6</button>
+      <div class="play-layout">
+        <div class="play-left">
+          <div id="scoreboard" class="scoreboard"></div>
+          <div id="ball-history-area"></div>
+          <div id="chase-info" class="chase-info hidden"></div>
+          <div id="status" class="status"></div>
+          <div id="last-ball" class="last-ball"></div>
+          <div class="ball-grid">
+            <button class="ball-btn" onclick="playBall(1)">1</button>
+            <button class="ball-btn" onclick="playBall(2)">2</button>
+            <button class="ball-btn" onclick="playBall(3)">3</button>
+            <button class="ball-btn" onclick="playBall(4)">4</button>
+            <button class="ball-btn" onclick="playBall(5)">5</button>
+            <button class="ball-btn" onclick="playBall(6)">6</button>
+          </div>
+          <div id="commentary-area"></div>
+        </div>
+        <div class="play-right">
+          <div id="ball-log" class="ball-log">
+            <h3>Ball Log</h3>
+            <div id="ball-log-entries"></div>
+          </div>
+        </div>
       </div>
-      <div id="commentary-area"></div>
     </div>
 
     <!-- RESULT SCREEN -->
     <div id="result-screen" class="screen hidden">
       <h2 id="result-heading"></h2>
       <div id="result-details"></div>
-      <button class="play-again-btn" onclick="resetGame()">Play Again</button>
+      <button class="play-again-btn" onclick="resetGame()">Menu</button>
     </div>
 
     <!-- EVENT MODAL (overlay) -->

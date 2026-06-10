@@ -23,11 +23,16 @@ function getBallResult(batterPick, bowlerPick) {
   return { isOut, runs: isOut ? 0 : batterPick };
 }
 
-function shouldEndInnings(wickets, wicketsLimit) {
+function shouldEndInnings(wickets, wicketsLimit, balls, ballsLimit) {
   if (typeof wickets !== 'number' || typeof wicketsLimit !== 'number') return false;
   if (!Number.isFinite(wickets) || !Number.isFinite(wicketsLimit)) return false;
   if (wickets < 0 || wicketsLimit < 0) return false;
-  return wickets >= wicketsLimit;
+  if (wickets >= wicketsLimit) return true;
+  if (ballsLimit !== null && ballsLimit !== undefined) {
+    if (typeof balls !== 'number' || !Number.isFinite(balls) || balls < 0) return false;
+    if (balls >= ballsLimit) return true;
+  }
+  return false;
 }
 
 function getChaseResult(score, target, wickets, wicketsLimit) {

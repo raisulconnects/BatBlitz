@@ -166,6 +166,36 @@ describe('shouldEndInnings', () => {
     expect(shouldEndInnings(10, 10)).toBe(true);
   });
 
+  describe('over limits', () => {
+    test('ends innings when balls reach ballsLimit', () => {
+      expect(shouldEndInnings(5, 10, 20, 20)).toBe(true);
+    });
+    test('does not end when balls below ballsLimit', () => {
+      expect(shouldEndInnings(5, 10, 19, 20)).toBe(false);
+    });
+    test('ends by wickets before ballsLimit', () => {
+      expect(shouldEndInnings(10, 10, 5, 20)).toBe(true);
+    });
+    test('null ballsLimit means no over limit', () => {
+      expect(shouldEndInnings(5, 10, 100, null)).toBe(false);
+    });
+    test('undefined ballsLimit means no over limit', () => {
+      expect(shouldEndInnings(5, 10, 100)).toBe(false);
+    });
+
+    describe('edge cases', () => {
+      test('negative balls returns false even with ballsLimit', () => {
+        expect(shouldEndInnings(5, 10, -1, 20)).toBe(false);
+      });
+      test('NaN balls returns false', () => {
+        expect(shouldEndInnings(5, 10, NaN, 20)).toBe(false);
+      });
+      test('string balls returns false', () => {
+        expect(shouldEndInnings(5, 10, '5', 20)).toBe(false);
+      });
+    });
+  });
+
   describe('edge cases', () => {
     test('negative wickets returns false', () => {
       expect(shouldEndInnings(-1, 1)).toBe(false);
