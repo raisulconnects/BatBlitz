@@ -1,5 +1,6 @@
 const {
   determineTossWinner,
+  determineTossWinnerHT,
   formatOvers,
   getBallResult,
   shouldEndInnings,
@@ -287,6 +288,44 @@ describe('getChaseResult', () => {
     });
     test('missing wicketsLimit returns null', () => {
       expect(getChaseResult(5, 10, 0)).toBeNull();
+    });
+  });
+});
+
+describe('determineTossWinnerHT', () => {
+  describe('user wins (correct call)', () => {
+    test('calling heads when coin is heads', () => {
+      expect(determineTossWinnerHT('heads', 'heads')).toBe('user');
+    });
+    test('calling tails when coin is tails', () => {
+      expect(determineTossWinnerHT('tails', 'tails')).toBe('user');
+    });
+  });
+
+  describe('ai wins (wrong call)', () => {
+    test('calling heads when coin is tails', () => {
+      expect(determineTossWinnerHT('heads', 'tails')).toBe('ai');
+    });
+    test('calling tails when coin is heads', () => {
+      expect(determineTossWinnerHT('tails', 'heads')).toBe('ai');
+    });
+  });
+
+  describe('edge cases', () => {
+    test('returns null for invalid call', () => {
+      expect(determineTossWinnerHT('rock', 'heads')).toBeNull();
+    });
+    test('returns null for invalid result', () => {
+      expect(determineTossWinnerHT('heads', 'rock')).toBeNull();
+    });
+    test('returns null for missing call', () => {
+      expect(determineTossWinnerHT(undefined, 'heads')).toBeNull();
+    });
+    test('returns null for null result', () => {
+      expect(determineTossWinnerHT('heads', null)).toBeNull();
+    });
+    test('returns null for empty call', () => {
+      expect(determineTossWinnerHT('', 'heads')).toBeNull();
     });
   });
 });

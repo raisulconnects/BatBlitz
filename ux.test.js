@@ -1,6 +1,8 @@
 const {
   getSavedSoundPreference,
   setSavedSoundPreference,
+  getSavedTossMode,
+  setSavedTossMode,
   getRunFromKey,
   isPlayBlocked,
 } = require('./script');
@@ -42,6 +44,37 @@ describe('setSavedSoundPreference', function () {
 
     test('does not throw when called with number', function () {
       expect(function () { setSavedSoundPreference(1); }).not.toThrow();
+    });
+  });
+});
+
+describe('getSavedTossMode', function () {
+  test('returns rps by default when localStorage is unavailable', function () {
+    expect(getSavedTossMode()).toBe('rps');
+  });
+
+  test('always returns a string', function () {
+    var result = getSavedTossMode();
+    expect(typeof result).toBe('string');
+  });
+});
+
+describe('setSavedTossMode', function () {
+  test('does not throw when called with rps', function () {
+    expect(function () { setSavedTossMode('rps'); }).not.toThrow();
+  });
+
+  test('does not throw when called with ht', function () {
+    expect(function () { setSavedTossMode('ht'); }).not.toThrow();
+  });
+
+  describe('edge cases', function () {
+    test('does not throw when called with null', function () {
+      expect(function () { setSavedTossMode(null); }).not.toThrow();
+    });
+
+    test('does not throw when called with undefined', function () {
+      expect(function () { setSavedTossMode(undefined); }).not.toThrow();
     });
   });
 });

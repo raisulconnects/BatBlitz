@@ -219,21 +219,54 @@ header h1 {
   text-shadow: 0 0 8px rgba(255, 107, 107, 0.4);
 }
 
-/* Sound toggle */
-#sound-toggle {
-  font-size: 1.3rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(57, 255, 20, 0.2);
-  border-radius: 8px;
+/* Settings modal content */
+.settings-content {
+  text-align: left;
+  padding: 0.25rem 0;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
   cursor: pointer;
-  padding: 0.4rem 0.6rem;
-  line-height: 1;
   transition: all 0.15s ease;
 }
 
-#sound-toggle:hover {
-  background: rgba(57, 255, 20, 0.1);
-  border-color: rgba(57, 255, 20, 0.4);
+.settings-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(57, 255, 20, 0.25);
+}
+
+.settings-row:active {
+  transform: scale(0.98);
+}
+
+.settings-icon {
+  font-size: 1.5rem;
+  width: 2rem;
+  text-align: center;
+}
+
+.settings-label {
+  flex: 1;
+  font-size: 1.1rem;
+  color: #c8d6c8;
+  letter-spacing: 0.5px;
+}
+
+.settings-value {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  color: #39ff14;
+  text-shadow: 0 0 8px rgba(57, 255, 20, 0.3);
+  text-align: right;
+  letter-spacing: 0.5px;
 }
 
 /* Screen transitions */
@@ -506,6 +539,53 @@ p, .screen-desc {
   text-align: center;
 }
 
+.mode-card-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mode-tooltip {
+  position: absolute;
+  top: calc(100% - 0.25rem);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  width: 220px;
+  padding: 0.7rem 0.8rem;
+  background: rgba(10, 15, 10, 0.95);
+  border: 1px solid rgba(57, 255, 20, 0.15);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #8a9a8a;
+  line-height: 1.5;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 12px rgba(57, 255, 20, 0.05);
+}
+
+.mode-card-wrapper:hover .mode-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.mode-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 8px;
+  height: 8px;
+  background: rgba(10, 15, 10, 0.95);
+  border-left: 1px solid rgba(57, 255, 20, 0.15);
+  border-top: 1px solid rgba(57, 255, 20, 0.15);
+}
+
 .back-btn {
   font-family: 'Press Start 2P', monospace;
   margin-top: 0.5rem;
@@ -591,6 +671,17 @@ p, .screen-desc {
 
 .rps-btn:active {
   transform: translateY(0);
+}
+
+.rps-buttons, .ht-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ht-buttons.hidden {
+  display: none;
 }
 
 .toss-result {
@@ -1047,9 +1138,23 @@ p, .screen-desc {
 
 .changelog-content {
   text-align: left;
-  max-height: 50vh;
+  max-height: 60vh;
   overflow-y: auto;
   font-size: 0.9rem;
+  padding-right: 0.25rem;
+}
+
+.changelog-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.changelog-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.changelog-content::-webkit-scrollbar-thumb {
+  background: rgba(57, 255, 20, 0.2);
+  border-radius: 2px;
 }
 
 .changelog-content h3 {
@@ -1652,9 +1757,13 @@ p, .screen-desc {
     align-items: center;
   }
 
-  .mode-card {
+  .mode-card-wrapper {
     width: 100%;
     max-width: 260px;
+  }
+
+  .mode-card {
+    width: 100%;
   }
 
   .menu-hero h2 {
@@ -1717,6 +1826,10 @@ p, .screen-desc {
 
 /* Touch device hover mitigation */
 @media (hover: none) {
+  .mode-tooltip {
+    display: none;
+  }
+
   .ball-btn:hover {
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.1);

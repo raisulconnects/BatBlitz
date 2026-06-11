@@ -2,6 +2,15 @@
 
 All notable changes to BatBlitz are documented here.
 
+## Version 1.5.0
+
+- Heads & Tails toss mode — new toss option alongside Rock Paper Scissors, selectable from Settings
+- Settings modal — volume mute toggle and toss mode selector, accessible from main menu
+- Sound toggle removed from header — volume now controlled via Settings modal
+- `determineTossWinnerHT` added to game-logic.js — pure function for heads/tails coin toss logic
+- Settings and toss mode persisted to localStorage (`batblitz-toss-mode`, `batblitz-sound`)
+- Toss screen dynamically updates between RPS and H&T button sets based on selected mode
+
 ## Version 1.4.0
 
 - Innings end red overlay effect — radial red gradient full-screen overlay, 'OUT!' text with GSAP bounce-in, wicket confetti burst, strong screen shake, chase sound. Game phase set to 'transition' to disable buttons during the effect, modal appears after 1.2s delay.

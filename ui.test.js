@@ -14,7 +14,12 @@ var {
   triggerInningsEnd,
   updateRoleIndicator,
   showHowToPlay,
+  showSettings,
+  toggleVolume,
+  toggleTossMode,
+  playClickSound,
   game,
+  tossMode,
 } = require('./script');
 var fs = require('fs');
 var path = require('path');
@@ -297,6 +302,30 @@ describe('changelog.json', function () {
         expect(data[i].entries[j].length).toBeGreaterThan(0);
       }
     }
+  });
+});
+
+describe('changelog scrollbar styles', function () {
+  var cssPath = path.resolve(__dirname, 'style.css');
+
+  test('changelog-content has custom scrollbar width', function () {
+    var cssText = fs.readFileSync(cssPath, 'utf8');
+    expect(cssText).toMatch(/\.changelog-content::-webkit-scrollbar\s*\{\s*width:\s*4px/i);
+  });
+
+  test('changelog-content has transparent scrollbar track', function () {
+    var cssText = fs.readFileSync(cssPath, 'utf8');
+    expect(cssText).toMatch(/\.changelog-content::-webkit-scrollbar-track\s*\{\s*background:\s*transparent/i);
+  });
+
+  test('changelog-content has styled scrollbar thumb', function () {
+    var cssText = fs.readFileSync(cssPath, 'utf8');
+    expect(cssText).toMatch(/\.changelog-content::-webkit-scrollbar-thumb\s*\{\s*background:\s*rgba\(57,\s*255,\s*20,\s*0\.2\)/i);
+  });
+
+  test('changelog-content has padding-right for scrollbar clearance', function () {
+    var cssText = fs.readFileSync(cssPath, 'utf8');
+    expect(cssText).toMatch(/\.changelog-content\s*\{[^}]*padding-right:\s*0\.25rem/i);
   });
 });
 
@@ -705,5 +734,235 @@ describe('how to play button in HTML', function () {
   test('how to play button calls showHowToPlay', function () {
     var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
     expect(html).toContain('onclick="showHowToPlay()"');
+  });
+});
+
+describe('showSettings', function () {
+  var modalOverlay;
+  var modalHeading;
+  var modalBody;
+  var modalBtn;
+
+  beforeAll(function () {
+    modalOverlay = document.createElement('div');
+    modalOverlay.id = 'event-modal';
+    modalOverlay.className = 'modal-overlay hidden';
+    document.body.appendChild(modalOverlay);
+
+    var modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    modalOverlay.appendChild(modalContent);
+
+    modalHeading = document.createElement('h2');
+    modalHeading.id = 'modal-heading';
+    modalContent.appendChild(modalHeading);
+
+    modalBody = document.createElement('div');
+    modalBody.id = 'modal-body';
+    modalContent.appendChild(modalBody);
+
+    modalBtn = document.createElement('button');
+    modalBtn.id = 'modal-btn';
+    modalContent.appendChild(modalBtn);
+  });
+
+  afterAll(function () {
+    if (modalOverlay && modalOverlay.parentNode) modalOverlay.parentNode.removeChild(modalOverlay);
+  });
+
+  beforeEach(function () {
+    modalOverlay.classList.add('hidden');
+    modalHeading.textContent = '';
+    modalBody.innerHTML = '';
+  });
+
+  test('is a function', function () {
+    expect(typeof showSettings).toBe('function');
+  });
+
+  test('opens modal with settings heading', function () {
+    showSettings();
+    expect(modalOverlay.classList.contains('hidden')).toBe(false);
+    expect(modalHeading.textContent).toContain('SETTINGS');
+  });
+
+  test('modal body contains volume row', function () {
+    showSettings();
+    expect(modalBody.innerHTML).toContain('Volume');
+  });
+
+  test('modal body contains toss mode row', function () {
+    showSettings();
+    expect(modalBody.innerHTML).toContain('Toss Mode');
+  });
+
+  test('modal has GOT IT button', function () {
+    showSettings();
+    expect(modalBtn.textContent).toBe('GOT IT');
+  });
+});
+
+describe('toggleVolume', function () {
+  test('is a function', function () {
+    expect(typeof toggleVolume).toBe('function');
+  });
+});
+
+describe('toggleTossMode', function () {
+  test('is a function', function () {
+    expect(typeof toggleTossMode).toBe('function');
+  });
+});
+
+describe('settings button in HTML', function () {
+  test('index.html contains settings button', function () {
+    var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+    expect(html).toContain('SETTINGS');
+  });
+
+  test('settings button calls showSettings', function () {
+    var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+    expect(html).toContain('onclick="showSettings()"');
+  });
+});
+
+describe('sound toggle removed from header', function () {
+  test('index.html no longer has sound-toggle button in header', function () {
+    var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+    expect(html).not.toContain('id="sound-toggle"');
+  });
+});
+
+describe('heads & tails buttons in toss screen', function () {
+  test('index.html contains HT buttons', function () {
+    var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+    expect(html).toContain('onclick="startToss(\'heads\')"');
+    expect(html).toContain('onclick="startToss(\'tails\')"');
+  });
+
+  test('HT buttons have hidden class by default', function () {
+    var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+    expect(html).toContain('class="ht-buttons hidden"');
+  });
+
+  test('toss screen has descriptive id for dynamic updates', function () {
+    var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+    expect(html).toContain('id="toss-desc"');
+  });
+});
+
+describe('toss mode persistence keys', function () {
+  test('script.js uses batblitz-toss-mode localStorage key', function () {
+    var js = fs.readFileSync(path.resolve(__dirname, 'script.js'), 'utf8');
+    expect(js).toContain('batblitz-toss-mode');
+  });
+});
+
+describe('volume mute respects soundEnabled', function () {
+  var callCount;
+
+  beforeAll(function () {
+    global.playButtonSound = function () { callCount++; };
+  });
+
+  beforeEach(function () {
+    callCount = 0;
+  });
+
+  test('playClickSound plays when sound is on', function () {
+    playClickSound();
+    expect(callCount).toBe(1);
+  });
+
+  test('playClickSound does not play when sound is muted', function () {
+    toggleVolume();
+    playClickSound();
+    expect(callCount).toBe(0);
+    toggleVolume();
+  });
+
+  test('toggleBallLog respects mute state', function () {
+    toggleVolume();
+    toggleBallLog();
+    expect(callCount).toBe(0);
+    toggleVolume();
+    toggleBallLog();
+    expect(callCount).toBe(1);
+  });
+
+  test('toggleCommentary respects mute state', function () {
+    toggleVolume();
+    toggleCommentary();
+    expect(callCount).toBe(0);
+    toggleVolume();
+    toggleCommentary();
+    expect(callCount).toBe(1);
+  });
+
+  test('playClickSound does not throw when playButtonSound is undefined', function () {
+    delete global.playButtonSound;
+    expect(function () { playClickSound(); }).not.toThrow();
+    global.playButtonSound = function () { callCount++; };
+  });
+});
+
+describe('mode select tooltips and descriptions', function () {
+  var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+  var css = fs.readFileSync(path.resolve(__dirname, 'style.css'), 'utf8');
+
+  test('each mode card has a wrapper', function () {
+    var matches = html.match(/<div class="mode-card-wrapper">/g);
+    expect(matches).not.toBeNull();
+    expect(matches.length).toBe(4);
+  });
+
+  test('each mode card has a tooltip element', function () {
+    var matches = html.match(/<div class="mode-tooltip">/g);
+    expect(matches).not.toBeNull();
+    expect(matches.length).toBe(3);
+  });
+
+  test('tooltip has descriptive text for quick mode', function () {
+    expect(html).toMatch(/Every ball is do-or-die/i);
+  });
+
+  test('tooltip has descriptive text for t20 mode', function () {
+    expect(html).toMatch(/20 overs per side/i);
+  });
+
+  test('tooltip has descriptive text for test mode', function () {
+    expect(html).toMatch(/ultimate endurance test/i);
+  });
+
+  test('quick mode description updated', function () {
+    expect(html).toMatch(/High stakes.*1 wicket.*unlimited overs/);
+  });
+
+  test('t20 mode description updated', function () {
+    expect(html).toMatch(/Classic T20.*10 wickets.*20 overs/);
+  });
+
+  test('test mode description updated', function () {
+    expect(html).toMatch(/Endurance test.*10 wickets.*unlimited overs/);
+  });
+
+  test('tooltip has glassmorphism dark background', function () {
+    expect(css).toMatch(/\.mode-tooltip\s*\{[^}]*background:\s*rgba\(10,\s*15,\s*10,\s*0\.95\)/i);
+  });
+
+  test('tooltip hidden by default via opacity 0', function () {
+    expect(css).toMatch(/\.mode-tooltip\s*\{[^}]*opacity:\s*0/i);
+  });
+
+  test('tooltip shown on wrapper hover', function () {
+    expect(css).toMatch(/\.mode-card-wrapper:hover\s*\.mode-tooltip\s*\{[^}]*opacity:\s*1/i);
+  });
+
+  test('tooltip has pointer-events none', function () {
+    expect(css).toMatch(/\.mode-tooltip\s*\{[^}]*pointer-events:\s*none/i);
+  });
+
+  test('tooltip hidden on touch devices', function () {
+    expect(css).toMatch(/@media\s*\(hover:\s*none\)\s*\{[^}]*\.mode-tooltip\s*\{[^}]*display:\s*none/i);
   });
 });

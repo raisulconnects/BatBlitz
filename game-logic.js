@@ -56,9 +56,17 @@ function getOppositeRole(role) {
   return null;
 }
 
+function determineTossWinnerHT(call, result) {
+  if (!call || !result) return null;
+  if (call !== 'heads' && call !== 'tails') return null;
+  if (result !== 'heads' && result !== 'tails') return null;
+  return call === result ? 'user' : 'ai';
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     determineTossWinner,
+    determineTossWinnerHT,
     formatOvers,
     getBallResult,
     shouldEndInnings,

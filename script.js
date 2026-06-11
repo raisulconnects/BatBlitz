@@ -70,7 +70,7 @@ function toggleBallLog() {
     entries.classList.add('collapsed');
   }
   saveBallLogSetting(uiSettings.ballLogVisible);
-  if (typeof playButtonSound === 'function') playButtonSound();
+  playClickSound();
   return uiSettings.ballLogVisible;
 }
 
@@ -88,7 +88,7 @@ function toggleCommentary() {
     if (toggleIcon) toggleIcon.classList.add('collapsed');
   }
   saveCommentarySetting(uiSettings.commentaryVisible);
-  if (typeof playButtonSound === 'function') playButtonSound();
+  playClickSound();
   return uiSettings.commentaryVisible;
 }
 
@@ -128,7 +128,7 @@ function isPlayBlocked(phase) {
 }
 
 function playClickSound() {
-  if (soundEnabled) playButtonSound();
+  if (soundEnabled && typeof playButtonSound === 'function') playButtonSound();
 }
 
 soundEnabled = getSavedSoundPreference();
@@ -378,11 +378,80 @@ function handleKeyDown(event) {
   }
 }
 
-function toggleSound() {
+function getSavedTossMode() {
+  try {
+    var val = localStorage.getItem('batblitz-toss-mode');
+    return val === 'ht' ? 'ht' : 'rps';
+  } catch (e) {
+    return 'rps';
+  }
+}
+
+function setSavedTossMode(val) {
+  try {
+    localStorage.setItem('batblitz-toss-mode', val);
+  } catch (e) {}
+}
+
+var tossMode = getSavedTossMode();
+
+function renderSettingsBody() {
+  var headingEl = document.getElementById('modal-heading');
+  var bodyEl = document.getElementById('modal-body');
+  if (!headingEl || !bodyEl) return;
+  var volumeIcon = soundEnabled ? '🔊' : '🔇';
+  var volumeLabel = soundEnabled ? 'ON' : 'OFF';
+  var tossLabel = tossMode === 'rps' ? 'Rock Paper Scissors' : 'Heads & Tails';
+  headingEl.textContent = '\u2699\uFE0F SETTINGS';
+  bodyEl.innerHTML =
+    '<div class="settings-content">' +
+      '<div class="settings-row" onclick="toggleVolume()">' +
+        '<span class="settings-icon">' + volumeIcon + '</span>' +
+        '<span class="settings-label">Volume</span>' +
+        '<span class="settings-value">' + volumeLabel + '</span>' +
+      '</div>' +
+      '<div class="settings-row" onclick="toggleTossMode()">' +
+        '<span class="settings-icon">\u{1F3B2}</span>' +
+        '<span class="settings-label">Toss Mode</span>' +
+        '<span class="settings-value">' + tossLabel + '</span>' +
+      '</div>' +
+    '</div>';
+}
+
+function toggleVolume() {
   soundEnabled = !soundEnabled;
-  const btn = document.getElementById('sound-toggle');
-  btn.textContent = soundEnabled ? '🔊' : '🔇';
   setSavedSoundPreference(soundEnabled);
+  playClickSound();
+  renderSettingsBody();
+}
+
+function toggleTossMode() {
+  tossMode = tossMode === 'rps' ? 'ht' : 'rps';
+  setSavedTossMode(tossMode);
+  playClickSound();
+  renderSettingsBody();
+}
+
+function showSettings() {
+  playClickSound();
+  showModal('\u2699\uFE0F SETTINGS', '', 'GOT IT');
+  renderSettingsBody();
+}
+
+function updateTossUI() {
+  var desc = document.getElementById('toss-desc');
+  var rpsBtns = document.getElementById('rps-buttons');
+  var htBtns = document.getElementById('ht-buttons');
+  if (!desc || !rpsBtns || !htBtns) return;
+  if (tossMode === 'ht') {
+    desc.textContent = 'Heads or Tails \u2014 winner chooses';
+    rpsBtns.classList.add('hidden');
+    htBtns.classList.remove('hidden');
+  } else {
+    desc.textContent = 'Rock Paper Scissors \u2014 winner chooses';
+    rpsBtns.classList.remove('hidden');
+    htBtns.classList.add('hidden');
+  }
 }
 
 const game = {
@@ -409,17 +478,17 @@ function showMenu() {
 }
 
 function showModeSelect() {
-  playButtonSound();
+  playClickSound();
   showScreen('mode', 'left');
 }
 
 function showAbout() {
-  playButtonSound();
+  playClickSound();
   showScreen('about', 'left');
 }
 
 function showHowToPlay() {
-  playButtonSound();
+  playClickSound();
   showModal(
     '📖 HOW TO PLAY',
     '<div class="howto-content">' +
@@ -462,7 +531,7 @@ function showHowToPlay() {
 }
 
 function showChangelog() {
-  playButtonSound();
+  playClickSound();
   showModal('📋 CHANGELOG', '<div class="changelog-content"><p class="changelog-loading">Loading...</p></div>', 'CLOSE');
   fetch('changelog.json?' + Date.now()).then(function (r) {
     if (!r.ok) throw new Error('Failed to load changelog');
@@ -485,7 +554,7 @@ function showChangelog() {
 }
 
 function showMultiplayerComingSoon() {
-  playButtonSound();
+  playClickSound();
   showModal(
     '👥 MULTIPLAYER',
     '<div class="coming-soon-content">' +
@@ -498,7 +567,7 @@ function showMultiplayerComingSoon() {
 }
 
 function selectMode(mode) {
-  playButtonSound();
+  playClickSound();
   game.mode = mode;
   if (mode === 'quick') {
     game.config.wicketsLimit = 1;
@@ -511,11 +580,40 @@ function selectMode(mode) {
     game.config.maxOvers = null;
   }
   document.getElementById('menu-mode-label').textContent = mode.toUpperCase() + ' MATCH';
+  updateTossUI();
   showScreen('toss', 'left');
 }
 
 function startToss(pick) {
-  playButtonSound();
+  playClickSound();
+
+  if (tossMode === 'ht') {
+    var coinResult = Math.random() < 0.5 ? 'heads' : 'tails';
+    game.userTossPick = pick;
+    game.aiTossPick = coinResult;
+    var htResult = determineTossWinnerHT(pick, coinResult);
+    game.tossWinner = htResult;
+    var htEmojis = { heads: '\u{1F451}', tails: '\u{1FA99}' };
+    var htMsg = htEmojis[pick] + ' You (' + pick + ') \u00B7 Coin: ' + htEmojis[coinResult] + ' (' + coinResult + ')';
+    if (soundEnabled) playTossRevealSound();
+    if (htResult === 'user') {
+      showModal('\u{1F389} YOU WIN!', htMsg, 'CHOOSE', function () {
+        showScreen('choice', 'left');
+      });
+    } else {
+      var aiRole = Math.random() < 0.5 ? 'bat' : 'bowl';
+      game.aiRole = aiRole;
+      game.userRole = getOppositeRole(aiRole);
+      var roleLabel = aiRole === 'bat' ? 'BATTING' : 'BOWLING';
+      showModal('\u{1F916} AI WINS', htMsg + '<br><br>AI chose <strong>' + roleLabel + '</strong> first.', 'PLAY \u2192', function () {
+        initInnings();
+        showScreen('play', 'left');
+        render();
+      });
+    }
+    return;
+  }
+
   const choices = ['rock', 'paper', 'scissors'];
   const aiPick = choices[Math.floor(Math.random() * 3)];
   game.userTossPick = pick;
@@ -584,7 +682,7 @@ function startToss(pick) {
 }
 
 function chooseRole(role) {
-  playButtonSound();
+  playClickSound();
   game.userRole = role;
   game.aiRole = getOppositeRole(role);
   var roleLabel = role === 'bat' ? 'BATTING' : 'BOWLING';
@@ -612,7 +710,7 @@ function initInnings() {
 function playBall(userPick) {
   if (game.phase !== 'play') return;
   game.message = '';
-  playButtonSound();
+  playClickSound();
 
   var btn = document.querySelector('.ball-btn[data-run="' + userPick + '"]');
   if (btn) animateButton(btn);
@@ -801,7 +899,7 @@ function endGame() {
 }
 
 function confirmExit() {
-  if (soundEnabled) playButtonSound();
+  playClickSound();
   showModal(
     '✕ EXIT MATCH?',
     'Are you sure you want to quit?<br><br>All progress will be lost.',
@@ -836,6 +934,7 @@ function playAgain() {
   game.message = '';
   document.getElementById('ball-log-entries').innerHTML = '<div class="ball-log-empty">No balls bowled yet</div>';
   document.getElementById('toss-result').innerHTML = '';
+  updateTossUI();
   showScreen('toss', 'left');
 }
 
@@ -1061,17 +1160,10 @@ function resetGame() {
   showScreen('menu', 'right');
 }
 
-if (typeof document !== 'undefined' && document.getElementById('sound-toggle')) {
+if (typeof document !== 'undefined' && document.getElementById('app')) {
   document.addEventListener('keydown', handleKeyDown);
   checkGsap();
   loadUiSettings();
-
-  if (soundEnabled) {
-    document.getElementById('sound-toggle').textContent = '🔊';
-  } else {
-    document.getElementById('sound-toggle').textContent = '🔇';
-  }
-
   showScreen('menu');
 }
 
@@ -1079,6 +1171,8 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     getSavedSoundPreference: getSavedSoundPreference,
     setSavedSoundPreference: setSavedSoundPreference,
+    getSavedTossMode: getSavedTossMode,
+    setSavedTossMode: setSavedTossMode,
     getRunFromKey: getRunFromKey,
     isPlayBlocked: isPlayBlocked,
     toggleBallLog: toggleBallLog,
@@ -1093,7 +1187,12 @@ if (typeof module !== 'undefined' && module.exports) {
     triggerParticles: triggerParticles,
     updateRoleIndicator: updateRoleIndicator,
     showHowToPlay: showHowToPlay,
+    playClickSound: playClickSound,
+    showSettings: showSettings,
+    toggleVolume: toggleVolume,
+    toggleTossMode: toggleTossMode,
     lastRoleIndicator: lastRoleIndicator,
     game: game,
+    tossMode: tossMode,
   };
 }

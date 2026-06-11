@@ -21,7 +21,6 @@
         <h1>BatBlitz</h1>
         <div id="role-indicator" class="role-indicator idle"></div>
       </div>
-      <button id="sound-toggle" onclick="toggleSound()" title="Toggle Sound">🔊</button>
     </header>
 
     <!-- MENU SCREEN -->
@@ -44,6 +43,9 @@
         <button class="menu-btn secondary-btn" onclick="showChangelog()">
           <span class="btn-icon">📋</span> CHANGELOG
         </button>
+        <button class="menu-btn secondary-btn" onclick="showSettings()">
+          <span class="btn-icon">⚙️</span> SETTINGS
+        </button>
       </div>
       <div class="menu-footer">
         <span class="menu-mode-label" id="menu-mode-label">SELECT MODE TO START</span>
@@ -55,25 +57,36 @@
       <h2>SELECT MODE</h2>
       <p class="screen-desc">Choose your match format</p>
       <div class="mode-cards">
-        <div class="mode-card" data-mode="quick" onclick="selectMode('quick')">
-          <span class="mode-icon">⚡</span>
-          <span class="mode-name">QUICK</span>
-          <span class="mode-desc">1 wicket · unlimited overs</span>
+        <div class="mode-card-wrapper">
+          <div class="mode-card" data-mode="quick" onclick="selectMode('quick')">
+            <span class="mode-icon">⚡</span>
+            <span class="mode-name">QUICK</span>
+            <span class="mode-desc">High stakes · 1 wicket · unlimited overs</span>
+          </div>
+          <div class="mode-tooltip">Every ball is do-or-die! Lose your only wicket and the match ends. Perfect for a fast, intense game.</div>
         </div>
-        <div class="mode-card" data-mode="t20" onclick="selectMode('t20')">
-          <span class="mode-icon">🏏</span>
-          <span class="mode-name">T20</span>
-          <span class="mode-desc">10 wickets · 20 overs</span>
+        <div class="mode-card-wrapper">
+          <div class="mode-card" data-mode="t20" onclick="selectMode('t20')">
+            <span class="mode-icon">🏏</span>
+            <span class="mode-name">T20</span>
+            <span class="mode-desc">Classic T20 · 10 wickets · 20 overs</span>
+          </div>
+          <div class="mode-tooltip">20 overs per side, 10 wickets. The world's favourite format — strategy meets power-hitting.</div>
         </div>
-        <div class="mode-card" data-mode="test" onclick="selectMode('test')">
-          <span class="mode-icon">🏆</span>
-          <span class="mode-name">TEST</span>
-          <span class="mode-desc">10 wickets · unlimited</span>
+        <div class="mode-card-wrapper">
+          <div class="mode-card" data-mode="test" onclick="selectMode('test')">
+            <span class="mode-icon">🏆</span>
+            <span class="mode-name">TEST</span>
+            <span class="mode-desc">Endurance test · 10 wickets · unlimited overs</span>
+          </div>
+          <div class="mode-tooltip">10 wickets, unlimited overs. The ultimate endurance test — patience and consistency win here.</div>
         </div>
-        <div class="mode-card mode-card-coming-soon" data-mode="multiplayer" onclick="showMultiplayerComingSoon()">
-          <span class="mode-icon">👥</span>
-          <span class="mode-name">MULTIPLAYER</span>
-          <span class="mode-desc">Coming soon</span>
+        <div class="mode-card-wrapper">
+          <div class="mode-card mode-card-coming-soon" data-mode="multiplayer" onclick="showMultiplayerComingSoon()">
+            <span class="mode-icon">👥</span>
+            <span class="mode-name">MULTIPLAYER</span>
+            <span class="mode-desc">Coming soon</span>
+          </div>
         </div>
       </div>
       <button class="back-btn" onclick="showMenu()">← BACK</button>
@@ -93,8 +106,8 @@
     <!-- TOSS SCREEN -->
     <div id="toss-screen" class="screen hidden">
       <h2>TOSS</h2>
-      <p class="screen-desc">Rock Paper Scissors — winner chooses</p>
-      <div class="rps-buttons">
+      <p class="screen-desc" id="toss-desc">Rock Paper Scissors — winner chooses</p>
+      <div class="rps-buttons" id="rps-buttons">
         <button class="rps-btn" data-rps="rock" onclick="startToss('rock')">
           <span class="rps-emoji">🪨</span>
           <span class="rps-label">ROCK</span>
@@ -106,6 +119,16 @@
         <button class="rps-btn" data-rps="scissors" onclick="startToss('scissors')">
           <span class="rps-emoji">✂️</span>
           <span class="rps-label">SCISSORS</span>
+        </button>
+      </div>
+      <div class="ht-buttons hidden" id="ht-buttons">
+        <button class="rps-btn" onclick="startToss('heads')">
+          <span class="rps-emoji">👑</span>
+          <span class="rps-label">HEADS</span>
+        </button>
+        <button class="rps-btn" onclick="startToss('tails')">
+          <span class="rps-emoji">🪙</span>
+          <span class="rps-label">TAILS</span>
         </button>
       </div>
       <div id="toss-result" class="toss-result"></div>

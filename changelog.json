@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.5.0",
+    "entries": [
+      "Heads & Tails toss mode — new option alongside RPS, selectable from Settings",
+      "Settings modal — volume mute toggle and toss mode selector, accessible from main menu",
+      "Sound toggle removed from header — volume now controlled via Settings modal"
+    ]
+  },
+  {
     "version": "1.4.0",
     "entries": [
       "Innings end red overlay effect — radial red gradient full-screen overlay, 'OUT!' text with GSAP bounce-in, wicket confetti burst, strong screen shake, chase sound. Game phase set to 'transition' to disable buttons during the effect, modal appears after 1.2s delay."

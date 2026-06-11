@@ -11,12 +11,12 @@ BatBlitz is a turn-based browser cricket game built with vanilla HTML, CSS, and 
 | `index.html` | All screens: menu, mode-select, about, toss, choice, play (with ball log toggle, exit toolbar, keyboard hint, commentary toggle), result (with play-again + menu), event modal. CDN deps: Google Fonts, GSAP, tsParticles-confetti |
 | `style.css` | Dark neon theme with glassmorphism, CRT scanline overlay, ~40 CSS animations, two-column play layout, retro typography, responsive, exit-btn, disabled ball buttons, empty states, result-actions |
 | `script.js` | UI logic: GSAP-powered transitions, tsParticles confetti, screen shake, score/boundary/six particle effects, ball log stagger, sound persistence (localStorage), keyboard shortcuts (1-6 / Escape), exit confirmation, AI thinking delay, quick rematch, ball button disable states, exported helpers for testing |
-| `game-logic.js` | Pure logic: `getBallResult`, `shouldEndInnings`, `getChaseResult`, `determineTossWinner`, `getOppositeRole`, `formatOvers` |
+| `game-logic.js` | Pure logic: `getBallResult`, `shouldEndInnings`, `getChaseResult`, `determineTossWinner`, `determineTossWinnerHT`, `getOppositeRole`, `formatOvers` |
 | `sounds.js` | 8-bit Web Audio API sounds using square/triangle/noise waves: 8 sound functions |
-| `game-logic.test.js` | 78 tests for pure logic |
+| `game-logic.test.js` | 87 tests for pure logic (includes `determineTossWinnerHT`) |
 | `sounds.test.js` | 11 tests for sound functions |
-| `ux.test.js` | 30 tests for UX helper functions: `getSavedSoundPreference`, `setSavedSoundPreference`, `getRunFromKey`, `isPlayBlocked` |
- | `ui.test.js` | 66 tests for UI toggles, ball log empty-message fix, toss back button, changelog.json validation, milestone effects (century, fifty, wicket glow, innings end), role indicator, user-select CSS, how-to-play modal, HTML button structure |
+| `ux.test.js` | 42 tests for UX helper functions: `getSavedSoundPreference`, `setSavedSoundPreference`, `getSavedTossMode`, `setSavedTossMode`, `getRunFromKey`, `isPlayBlocked` |
+| `ui.test.js` | 74 tests for UI toggles, ball log empty-message fix, toss back button, changelog.json validation, milestone effects (century, fifty, wicket glow, innings end), role indicator, user-select CSS, how-to-play modal, HTML button structure, settings modal, Heads & Tails HTML, sound-toggle removal |
 | `changelog.json` | Dynamic changelog data consumed by `showChangelog()` |
 | `CHANGELOG.md` | Version history with all notable changes |
 
@@ -28,23 +28,25 @@ BatBlitz is a turn-based browser cricket game built with vanilla HTML, CSS, and 
 | `tsparticles-confetti` | Rich particle effects: star burst on six, sparkle ring on boundary, red burst on wicket, medal shower on win |
 
 ### Test Coverage
-- **Total**: 185 tests (78 game-logic + 11 sounds + 30 ux + 66 ui)
+- **Total**: 214 tests (87 game-logic + 11 sounds + 42 ux + 74 ui)
 - `shouldEndInnings`: 18 tests
 - Toss redo loop: 4 tests verifying tie auto-retry always produces non-tie
-- UX helpers (`ux.test.js`): 30 tests across 4 functions with edge case coverage
-- UI toggles (`ui.test.js`): 55 tests covering ball log/commentary toggles, empty message removal, toss back button structure, changelog.json format validation, milestone effects (triggerCentury, triggerHalfCentury, triggerWicketGlow, triggerInningsEnd), game milestones initial state, role indicator update, user-select CSS check
+- `determineTossWinnerHT`: 9 tests covering correct call, wrong call, and edge cases
+- UX helpers (`ux.test.js`): 42 tests across 6 functions with edge case coverage
+- UI toggles (`ui.test.js`): 74 tests covering ball log/commentary toggles, empty message removal, toss back button structure, changelog.json format validation, milestone effects, role indicator, user-select CSS, how-to-play modal, HTML button structure, settings modal, Heads & Tails HTML, sound-toggle removal
 - All other logic functions fully covered
 
 ### Game Flow
 ```
-Menu → Mode Select → Toss (RPS) → Choice (bat/bowl) → Play → Result → Menu
+Menu → Mode Select → Toss (RPS or Heads & Tails) → Choice (bat/bowl) → Play → Result → Menu
+Settings accessible from Menu at any time
 ```
 
 ### Screens
-1. **Menu** — Glitch-text logo, neon "PLAY" button, About button, CHANGELOG button, selected mode label
+1. **Menu** — Glitch-text logo, neon "PLAY" button, About button, CHANGELOG button, SETTINGS button, selected mode label
 2. **Mode Select** — Three glassmorphism cards (Quick/T20/Test) with hover glow
 3. **About** — Description and credits
-4. **Toss** — Rock Paper Scissors with hover scale + AI reveal sound
+4. **Toss** — Rock Paper Scissors OR Heads & Tails (configurable in Settings), with hover scale + AI reveal sound. Toss screen dynamically shows RPS buttons or HT buttons based on `tossMode` setting.
 5. **Choice** — Two neon "BAT" / "BOWL" buttons (green/red accent)
 6. **Play** — Two-column layout (game left, ball log right) with stadium scoreboard, exit toolbar
 7. **Result** — Animated score cards + tsParticles confetti burst on win + play again buttons
@@ -78,6 +80,9 @@ Returns false for invalid inputs (negative, NaN, non-finite).
 
 ### `determineTossWinner(userPick, aiPick)`
 Returns `'user'`, `'ai'`, or `'tie'`.
+
+### `determineTossWinnerHT(call, result)`
+Returns `'user'` if call matches coin result, `'ai'` otherwise, or `null` for invalid inputs.
 
 ### `getOppositeRole(role)`
 Returns `'bat'` for `'bowl'` and vice versa.
@@ -219,6 +224,14 @@ const game = {
 | `triggerParticles` | `(type) → void` | Fires confetti burst by type: six, four, wicket, win, century, fifty |
 | `updateRoleIndicator` | `() → void` | Updates header badge to show current role (BATTING/BOWLING) or idle state |
 | `game` | `→ Object` | Reference to the global game state object (for test inspection) |
+
+## Settings Modal (`script.js`)
+
+- **Volume mute toggle**: Toggles `soundEnabled` on/off. When muted (`OFF`), no sound functions are called anywhere in the game. Persisted to `batblitz-sound` in localStorage.
+- **Toss mode selector**: Switches between `'rps'` (Rock Paper Scissors) and `'ht'` (Heads & Tails) toss modes. Persisted to `batblitz-toss-mode` in localStorage.
+- Settings modal is the new home for volume control (removed from header sound toggle button).
+- Both settings are clickable rows with icon, label, and value display. Clicking toggles the setting and refreshes the modal body.
+- Exported testable functions: `showSettings`, `toggleVolume`, `toggleTossMode`, `getSavedTossMode`, `setSavedTossMode`
 
 ### Keyboard Shortcuts
 - **Keys `1`–`6`**: Play ball (batting) or bowl (bowling) + no modal open
