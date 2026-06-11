@@ -5,6 +5,10 @@ const {
   setSavedTossMode,
   getRunFromKey,
   isPlayBlocked,
+  getSavedPlayerName,
+  setSavedPlayerName,
+  getDisplayName,
+  getDisplayNamePossessive,
 } = require('./script');
 
 describe('getSavedSoundPreference', function () {
@@ -176,5 +180,41 @@ describe('isPlayBlocked', function () {
     test('extra arguments are ignored', function () {
       expect(isPlayBlocked('play', 'anything', 123)).toBe(false);
     });
+  });
+});
+
+describe('getSavedPlayerName', function () {
+  test('returns empty string when localStorage is unavailable', function () {
+    expect(getSavedPlayerName()).toBe('');
+  });
+});
+
+describe('setSavedPlayerName', function () {
+  test('does not throw when called with a name', function () {
+    expect(function () { setSavedPlayerName('Alex'); }).not.toThrow();
+  });
+
+  test('does not throw when called with whitespace name', function () {
+    expect(function () { setSavedPlayerName('  Alex  '); }).not.toThrow();
+  });
+
+  test('does not throw when called with empty string', function () {
+    expect(function () { setSavedPlayerName(''); }).not.toThrow();
+  });
+
+  test('does not throw when called with whitespace-only', function () {
+    expect(function () { setSavedPlayerName('   '); }).not.toThrow();
+  });
+});
+
+describe('getDisplayName', function () {
+  test('returns "You" when no name is saved', function () {
+    expect(getDisplayName()).toBe('You');
+  });
+});
+
+describe('getDisplayNamePossessive', function () {
+  test('returns "Your" when no name is saved', function () {
+    expect(getDisplayNamePossessive()).toBe('Your');
   });
 });

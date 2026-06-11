@@ -20,6 +20,10 @@ var {
   playClickSound,
   game,
   tossMode,
+  getSavedPlayerName,
+  setSavedPlayerName,
+  getDisplayName,
+  getDisplayNamePossessive,
 } = require('./script');
 var fs = require('fs');
 var path = require('path');
@@ -964,5 +968,95 @@ describe('mode select tooltips and descriptions', function () {
 
   test('tooltip hidden on touch devices', function () {
     expect(css).toMatch(/@media\s*\(hover:\s*none\)\s*\{[^}]*\.mode-tooltip\s*\{[^}]*display:\s*none/i);
+  });
+});
+
+describe('player name settings', function () {
+  var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+  var js = fs.readFileSync(path.resolve(__dirname, 'script.js'), 'utf8');
+
+  test('script.js exports getSavedPlayerName', function () {
+    expect(typeof getSavedPlayerName).toBe('function');
+  });
+
+  test('script.js exports setSavedPlayerName', function () {
+    expect(typeof setSavedPlayerName).toBe('function');
+  });
+
+  test('script.js exports getDisplayName', function () {
+    expect(typeof getDisplayName).toBe('function');
+  });
+
+  test('script.js exports getDisplayNamePossessive', function () {
+    expect(typeof getDisplayNamePossessive).toBe('function');
+  });
+
+  test('getSavedPlayerName uses batblitz-player-name localStorage key', function () {
+    expect(js).toContain('batblitz-player-name');
+  });
+
+  test('getDisplayName falls back to "You"', function () {
+    expect(js).toMatch(/return\s+name\s*\|\|\s*['"]You['"]/);
+  });
+
+  test('getDisplayNamePossessive returns "Your" for "You"', function () {
+    expect(js).toMatch(/name\s*===\s*['"]You['"]\s*\?\s*['"]Your['"]/);
+  });
+
+  test('settings render includes player name row', function () {
+    expect(js).toMatch(/Player Name/);
+  });
+
+  test('settings render calls getDisplayName for player name value', function () {
+    expect(js).toMatch(/getDisplayName\(\s*\)/);
+  });
+
+  test('renderSettingsBody includes onclick for showPlayerNameModal', function () {
+    expect(js).toMatch(/showPlayerNameModal/);
+  });
+
+  test('showPlayerNameModal creates input with maxlength 20', function () {
+    expect(js).toMatch(/maxlength="20"/);
+  });
+
+  test('showPlayerNameModal has SAVE and CANCEL buttons', function () {
+    expect(js).toMatch(/SAVE/);
+    expect(js).toMatch(/CANCEL/);
+  });
+
+  test('render uses getDisplayName for batting label', function () {
+    expect(js).toMatch(/battingTeam\s*===\s*['"]user['"]\s*\?\s*getDisplayName\(\s*\)/);
+  });
+
+  test('render uses getDisplayName for previous innings label', function () {
+    expect(js).toMatch(/prevBatting\s*===\s*['"]user['"]\s*\?\s*getDisplayName\(\s*\)/);
+  });
+
+  test('last ball display uses getDisplayName', function () {
+    expect(js).toMatch(/lb\.batter\s*===\s*['"]user['"]\s*\?\s*getDisplayName\(\s*\)\s*:\s*['"]AI['"]/);
+  });
+
+  test('innings end modal uses getDisplayNamePossessive', function () {
+    expect(js).toMatch(/getDisplayNamePossessive\(\s*\)\.toUpperCase\(\s*\)/);
+  });
+
+  test('chase complete uses getDisplayName for winner', function () {
+    expect(js).toMatch(/winnerLabel2\s*=\s*game\.currentInnings\.battingTeam\s*===\s*['"]user['"]\s*\?\s*getDisplayName\(\s*\)/);
+  });
+
+  test('setSavedPlayerName trims input', function () {
+    expect(js).toMatch(/\.trim\(\s*\)/);
+  });
+});
+
+describe('name edit modal CSS', function () {
+  var css = fs.readFileSync(path.resolve(__dirname, 'style.css'), 'utf8');
+
+  test('name-edit-input has styling', function () {
+    expect(css).toMatch(/\.name-edit-input/);
+  });
+
+  test('name-edit-label has styling', function () {
+    expect(css).toMatch(/\.name-edit-label/);
   });
 });

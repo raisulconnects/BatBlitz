@@ -395,6 +395,30 @@ function setSavedTossMode(val) {
 
 var tossMode = getSavedTossMode();
 
+function getSavedPlayerName() {
+  try {
+    return localStorage.getItem('batblitz-player-name') || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+function setSavedPlayerName(name) {
+  try {
+    localStorage.setItem('batblitz-player-name', (name || '').trim());
+  } catch (e) {}
+}
+
+function getDisplayName() {
+  var name = getSavedPlayerName();
+  return name || 'You';
+}
+
+function getDisplayNamePossessive() {
+  var name = getDisplayName();
+  return name === 'You' ? 'Your' : name + "'s";
+}
+
 function renderSettingsBody() {
   var headingEl = document.getElementById('modal-heading');
   var bodyEl = document.getElementById('modal-body');
@@ -402,6 +426,7 @@ function renderSettingsBody() {
   var volumeIcon = soundEnabled ? '🔊' : '🔇';
   var volumeLabel = soundEnabled ? 'ON' : 'OFF';
   var tossLabel = tossMode === 'rps' ? 'Rock Paper Scissors' : 'Heads & Tails';
+  var playerName = getDisplayName();
   headingEl.textContent = '\u2699\uFE0F SETTINGS';
   bodyEl.innerHTML =
     '<div class="settings-content">' +
@@ -414,6 +439,11 @@ function renderSettingsBody() {
         '<span class="settings-icon">\u{1F3B2}</span>' +
         '<span class="settings-label">Toss Mode</span>' +
         '<span class="settings-value">' + tossLabel + '</span>' +
+      '</div>' +
+      '<div class="settings-row" onclick="showPlayerNameModal()">' +
+        '<span class="settings-icon">\u{1F464}</span>' +
+        '<span class="settings-label">Player Name</span>' +
+        '<span class="settings-value">' + playerName + '</span>' +
       '</div>' +
     '</div>';
 }
@@ -551,6 +581,30 @@ function showChangelog() {
   }).catch(function () {
     document.getElementById('modal-body').innerHTML = '<div class="changelog-content"><p class="changelog-loading">Failed to load changelog.</p></div>';
   });
+}
+
+function showPlayerNameModal() {
+  playClickSound();
+  var currentName = getSavedPlayerName();
+  showModal(
+    '\u{1F464} EDIT NAME',
+    '<div class="name-edit-content">' +
+      '<label for="player-name-input" class="name-edit-label">Enter your name:</label>' +
+      '<input type="text" id="player-name-input" class="name-edit-input" value="' + currentName.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '" maxlength="20" placeholder="Your name..." autofocus>' +
+    '</div>',
+    'SAVE',
+    function () {
+      var input = document.getElementById('player-name-input');
+      if (input) {
+        setSavedPlayerName(input.value);
+      }
+    },
+    'CANCEL'
+  );
+  setTimeout(function () {
+    var input = document.getElementById('player-name-input');
+    if (input) input.focus();
+  }, 100);
 }
 
 function showMultiplayerComingSoon() {
@@ -794,7 +848,7 @@ function playBall(userPick) {
   if (game.currentInnings === game.innings1) {
     if (shouldEndInnings(game.currentInnings.wickets, game.config.wicketsLimit, game.currentInnings.balls, ballsLimit)) {
       triggerInningsEnd();
-      var label = game.currentInnings.battingTeam === 'user' ? 'YOUR' : "AI'S";
+      var label = game.currentInnings.battingTeam === 'user' ? getDisplayNamePossessive().toUpperCase() : "AI'S";
       var scoreRef = game.currentInnings.score;
       var wicketRef = game.currentInnings.wickets;
       var ballsRef = game.currentInnings.balls;
@@ -817,8 +871,8 @@ function playBall(userPick) {
     if (shouldEndInnings(game.currentInnings.wickets, game.config.wicketsLimit, game.currentInnings.balls, ballsLimit)) {
       triggerInningsEnd();
       game.result = game.currentInnings.battingTeam === 'user' ? 'ai' : 'user';
-      var label2 = game.currentInnings.battingTeam === 'user' ? 'YOUR' : "AI'S";
-      var winnerLabel = game.currentInnings.battingTeam === 'user' ? 'AI' : 'You';
+      var label2 = game.currentInnings.battingTeam === 'user' ? getDisplayNamePossessive().toUpperCase() : "AI'S";
+      var winnerLabel = game.currentInnings.battingTeam === 'user' ? 'AI' : getDisplayName();
       var scoreRef2 = game.currentInnings.score;
       var wicketRef2 = game.currentInnings.wickets;
       var ballsRef2 = game.currentInnings.balls;
@@ -845,7 +899,7 @@ function playBall(userPick) {
     );
     if (chaseResult === 'win') {
       game.result = game.currentInnings.battingTeam;
-      var winnerLabel2 = game.currentInnings.battingTeam === 'user' ? 'You' : 'AI';
+      var winnerLabel2 = game.currentInnings.battingTeam === 'user' ? getDisplayName() : 'AI';
       if (soundEnabled) playWinSound();
       showModal(
         '🎉 CHASE COMPLETE!',
@@ -860,8 +914,8 @@ function playBall(userPick) {
     }
     if (chaseResult === 'lose') {
       game.result = game.currentInnings.battingTeam === 'user' ? 'ai' : 'user';
-      var loserLabel = game.currentInnings.battingTeam === 'user' ? 'Your' : "AI's";
-      var winnerLabel3 = game.currentInnings.battingTeam === 'user' ? 'AI' : 'You';
+      var loserLabel = game.currentInnings.battingTeam === 'user' ? getDisplayNamePossessive() : "AI's";
+      var winnerLabel3 = game.currentInnings.battingTeam === 'user' ? 'AI' : getDisplayName();
       var margin2 = game.innings1.target - game.currentInnings.score;
       if (soundEnabled) playWicketSound();
       showModal(
@@ -1007,7 +1061,7 @@ function render() {
 
   var isInnings1 = game.currentInnings === game.innings1;
   var battingTeam = game.currentInnings.battingTeam;
-  var battingLabel = battingTeam === 'user' ? 'You' : 'AI';
+  var battingLabel = battingTeam === 'user' ? getDisplayName() : 'AI';
   var overs = formatOvers(game.currentInnings.balls);
 
   var sbHTML = '<div class="score-row">';
@@ -1019,7 +1073,7 @@ function render() {
 
   if (!isInnings1) {
     var prevBatting = game.innings1.battingTeam;
-    var prevLabel = prevBatting === 'user' ? 'You' : 'AI';
+    var prevLabel = prevBatting === 'user' ? getDisplayName() : 'AI';
     var prevOvers = formatOvers(game.innings1.balls);
     sbHTML += '<div class="score-previous"><strong>' + prevLabel + '</strong> ' + game.innings1.score + '/' + game.innings1.wickets + ' (' + prevOvers + ' ov)</div>';
   }
@@ -1049,8 +1103,8 @@ function render() {
 
   if (game.lastBall) {
     var lb = game.lastBall;
-    var batterLabel2 = lb.batter === 'user' ? 'You' : 'AI';
-    var bowlerLabel2 = lb.batter === 'user' ? 'AI' : 'You';
+    var batterLabel2 = lb.batter === 'user' ? getDisplayName() : 'AI';
+    var bowlerLabel2 = lb.batter === 'user' ? 'AI' : getDisplayName();
     var text2 = 'Last: ' + batterLabel2 + ' [' + lb.batterPick + '] vs ' + bowlerLabel2 + ' [' + lb.bowlerPick + '] → ';
     text2 += lb.isOut ? '<strong class="out-text">OUT!</strong>' : '<strong>' + lb.runs + ' runs</strong>';
     document.getElementById('last-ball').innerHTML = text2;
@@ -1191,6 +1245,11 @@ if (typeof module !== 'undefined' && module.exports) {
     showSettings: showSettings,
     toggleVolume: toggleVolume,
     toggleTossMode: toggleTossMode,
+    getSavedPlayerName: getSavedPlayerName,
+    setSavedPlayerName: setSavedPlayerName,
+    getDisplayName: getDisplayName,
+    getDisplayNamePossessive: getDisplayNamePossessive,
+    showPlayerNameModal: showPlayerNameModal,
     lastRoleIndicator: lastRoleIndicator,
     game: game,
     tossMode: tossMode,
