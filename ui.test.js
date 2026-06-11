@@ -1060,3 +1060,99 @@ describe('name edit modal CSS', function () {
     expect(css).toMatch(/\.name-edit-label/);
   });
 });
+
+describe('responsive mobile CSS', function () {
+  var css = fs.readFileSync(path.resolve(__dirname, 'style.css'), 'utf8');
+
+  test('mobile breakpoint at 600px exists', function () {
+    expect(css).toMatch(/@media\s*\(max-width:\s*600px\)/);
+  });
+
+  test('play-layout becomes column on mobile', function () {
+    var mobileBlock = css.match(/@media\s*\(max-width:\s*600px\)[\s\S]*?^}/m);
+    expect(mobileBlock).not.toBeNull();
+    if (mobileBlock) {
+      expect(mobileBlock[0]).toMatch(/flex-direction:\s*column/);
+    }
+  });
+
+  test('play-right becomes full width on mobile', function () {
+    var mobileBlock = css.match(/@media\s*\(max-width:\s*600px\)[\s\S]*?^}/m);
+    expect(mobileBlock).not.toBeNull();
+    if (mobileBlock) {
+      expect(mobileBlock[0]).toMatch(/\.play-right\s*\{[^}]*width:\s*100%/);
+    }
+  });
+
+  test('logo-glitch font size reduced on mobile', function () {
+    var mobileBlock = css.match(/@media\s*\(max-width:\s*600px\)[\s\S]*?^}/m);
+    expect(mobileBlock).not.toBeNull();
+    if (mobileBlock) {
+      expect(mobileBlock[0]).toMatch(/\.logo-glitch\s*\{[^}]*font-size:\s*1\.4rem/);
+    }
+  });
+
+  test('ball button padding reduced on mobile', function () {
+    var mobileBlock = css.match(/@media\s*\(max-width:\s*600px\)[\s\S]*?^}/m);
+    expect(mobileBlock).not.toBeNull();
+    if (mobileBlock) {
+      expect(mobileBlock[0]).toMatch(/\.ball-btn\s*\{[^}]*padding:\s*0\.85rem/);
+    }
+  });
+
+  test('modal-actions stacks vertically on mobile', function () {
+    var mobileBlock = css.match(/@media\s*\(max-width:\s*600px\)[\s\S]*?^}/m);
+    expect(mobileBlock).not.toBeNull();
+    if (mobileBlock) {
+      expect(mobileBlock[0]).toMatch(/\.modal-actions\s*\{[^}]*flex-direction:\s*column/);
+    }
+  });
+
+  test('howto-modes becomes column on mobile', function () {
+    var mobileBlock = css.match(/@media\s*\(max-width:\s*600px\)[\s\S]*?^}/m);
+    expect(mobileBlock).not.toBeNull();
+    if (mobileBlock) {
+      expect(mobileBlock[0]).toMatch(/\.howto-modes\s*\{[^}]*flex-direction:\s*column/);
+    }
+  });
+
+  test('app has min-height 100vh on mobile', function () {
+    var mobileBlock = css.match(/@media\s*\(max-width:\s*600px\)[\s\S]*?^}/m);
+    expect(mobileBlock).not.toBeNull();
+    if (mobileBlock) {
+      expect(mobileBlock[0]).toMatch(/min-height:\s*100vh/);
+    }
+  });
+
+  test('landscape breakpoint at 768px exists', function () {
+    expect(css).toMatch(/@media\s*\(max-width:\s*768px\)\s*and\s*\(orientation:\s*landscape\)/);
+  });
+
+  test('ball-grid becomes 6 columns in landscape', function () {
+    var landscapeBlock = css.match(/@media\s*\(max-width:\s*768px\)\s*and\s*\(orientation:\s*landscape\)[\s\S]*?^}/m);
+    expect(landscapeBlock).not.toBeNull();
+    if (landscapeBlock) {
+      expect(landscapeBlock[0]).toMatch(/grid-template-columns:\s*repeat\(6,\s*1fr\)/);
+    }
+  });
+
+  test('touch hover mitigation breakpoint exists', function () {
+    expect(css).toMatch(/@media\s*\(hover:\s*none\)/);
+  });
+
+  test('mode-cards becomes column on mobile', function () {
+    var mobileBlock = css.match(/@media\s*\(max-width:\s*600px\)[\s\S]*?^}/m);
+    expect(mobileBlock).not.toBeNull();
+    if (mobileBlock) {
+      expect(mobileBlock[0]).toMatch(/\.mode-cards\s*\{[^}]*flex-direction:\s*column/);
+    }
+  });
+
+  test('settings-row padding reduced on mobile', function () {
+    var mobileBlock = css.match(/@media\s*\(max-width:\s*600px\)[\s\S]*?^}/m);
+    expect(mobileBlock).not.toBeNull();
+    if (mobileBlock) {
+      expect(mobileBlock[0]).toMatch(/\.settings-row\s*\{[^}]*padding:\s*0\.55rem/);
+    }
+  });
+});

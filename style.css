@@ -1710,27 +1710,234 @@ p, .screen-desc {
 /* Responsive */
 @media (max-width: 600px) {
   #app {
-    padding: 1rem;
+    padding: 1rem 0.75rem;
     border-radius: 12px;
     width: 100%;
     max-width: 100%;
+    min-height: 100vh;
+    border-left: none;
+    border-right: none;
+  }
+
+  header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
   }
 
   header h1 {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
+  }
+
+  .header-left {
+    gap: 0.4rem;
+  }
+
+  .role-indicator {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.4rem;
   }
 
   .logo-glitch {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
   }
 
-  .play-layout {
+  .menu-hero {
+    margin-bottom: 1rem;
+  }
+
+  .menu-hero .subtitle {
+    font-size: 1rem;
+  }
+
+  .menu-buttons {
+    max-width: 100%;
+    gap: 0.7rem;
+  }
+
+  .menu-btn {
+    padding: 0.85rem;
+    font-size: 0.6rem;
+  }
+
+  .menu-btn .btn-icon {
+    font-size: 0.85rem;
+    margin-right: 6px;
+  }
+
+  h2 {
+    font-size: 0.7rem;
+  }
+
+  p, .screen-desc {
+    font-size: 0.95rem;
+  }
+
+  .back-btn {
+    font-size: 0.5rem;
+    padding: 0.6rem 1.5rem;
+  }
+
+  /* Mode select */
+  .mode-cards {
     flex-direction: column;
     align-items: center;
   }
 
+  .mode-card-wrapper {
+    width: 100%;
+    max-width: 240px;
+  }
+
+  .mode-card {
+    width: 100%;
+    padding: 1rem 0.75rem;
+  }
+
+  .mode-icon {
+    font-size: 1.8rem;
+  }
+
+  .mode-name {
+    font-size: 0.65rem;
+  }
+
+  .mode-desc {
+    font-size: 0.8rem;
+  }
+
+  /* About */
+  .about-content {
+    font-size: 0.95rem;
+    max-width: 100%;
+    padding: 0 0.25rem;
+  }
+
+  /* Toss */
+  .rps-buttons, .ht-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .rps-btn {
+    padding: 1rem 1.5rem;
+    width: 200px;
+  }
+
+  .rps-btn .rps-emoji {
+    font-size: 1.8rem;
+  }
+
+  .rps-btn .rps-label {
+    font-size: 0.45rem;
+  }
+
+  /* Choice */
+  .choice-buttons {
+    gap: 0.8rem;
+  }
+
+  .choice-btn {
+    padding: 1rem 1.5rem;
+  }
+
+  .choice-icon {
+    font-size: 2rem;
+  }
+
+  .choice-label {
+    font-size: 0.65rem;
+  }
+
+  /* Play layout */
+  .play-toolbar {
+    margin-bottom: 0.3rem;
+  }
+
+  .exit-btn {
+    font-size: 0.45rem;
+    padding: 0.4rem 0.7rem;
+  }
+
+  .play-layout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .play-left {
+    gap: 0.4rem;
+  }
+
+  .scoreboard {
+    font-size: 0.95rem;
+    padding: 0.6rem 0.7rem;
+  }
+
+  .score-current {
+    font-size: 1rem;
+  }
+
+  .score-target {
+    font-size: 0.8rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .score-previous {
+    font-size: 0.8rem;
+  }
+
+  .status {
+    font-size: 0.95rem;
+    min-height: 1.5rem;
+    padding: 0.2rem 0;
+  }
+
+  .last-ball {
+    font-size: 0.85rem;
+    min-height: 1.3rem;
+    padding: 0.2rem 0;
+  }
+
+  .ball-grid {
+    gap: 0.4rem;
+    max-width: 100%;
+  }
+
+  .ball-btn {
+    padding: 0.85rem 0.5rem;
+    font-size: 0.95rem;
+    border-radius: 10px;
+  }
+
+  .keyboard-hint {
+    font-size: 0.65rem;
+  }
+
+  .toggle-commentary-row {
+    font-size: 0.6rem;
+  }
+
+  .toggle-commentary-label {
+    font-size: 0.65rem;
+  }
+
+  .commentary {
+    font-size: 0.8rem;
+    max-height: 3.5rem;
+  }
+
+  /* Play right (ball log) */
   .play-right {
     width: 100%;
+  }
+
+  .ball-log {
+    padding: 0.5rem;
+  }
+
+  .ball-log-header h3 {
+    font-size: 0.5rem;
   }
 
   .ball-log-entries {
@@ -1741,30 +1948,23 @@ p, .screen-desc {
     max-height: 0;
   }
 
-  .ball-btn {
-    padding: 1rem;
-    font-size: 1rem;
+  .ball-log-entry {
+    font-size: 0.75rem;
+    padding: 0.2rem 0;
   }
 
-  .ball-grid {
-    gap: 0.5rem;
-    max-width: 100%;
+  .ball-log-ball {
+    width: 1.2rem;
+    height: 1.2rem;
+    font-size: 0.5rem;
   }
 
-  .scoreboard {
-    font-size: 1rem;
-    padding: 0.7rem;
+  .ball-log-empty {
+    font-size: 0.75rem;
+    padding: 0.5rem 0;
   }
 
-  .modal-content {
-    padding: 1.5rem;
-    margin: 1rem;
-  }
-
-  .modal-content h2 {
-    font-size: 0.8rem;
-  }
-
+  /* Result */
   .result-grid {
     flex-direction: column;
     align-items: center;
@@ -1774,44 +1974,141 @@ p, .screen-desc {
     min-width: 100px;
     width: 100%;
     max-width: 200px;
+    padding: 1rem 1.2rem;
   }
 
-  .rps-btn {
-    padding: 1rem 1.3rem;
+  .result-team-card h3 {
+    font-size: 0.5rem;
   }
 
-  .rps-btn .rps-emoji {
-    font-size: 2rem;
+  .result-score {
+    font-size: 1.6rem;
   }
 
-  .choice-btn {
-    padding: 1.2rem 1.8rem;
+  .result-overs {
+    font-size: 0.8rem;
   }
 
-  .mode-cards {
-    flex-direction: column;
-    align-items: center;
+  .result-actions {
+    gap: 0.5rem;
   }
 
-  .mode-card-wrapper {
-    width: 100%;
-    max-width: 260px;
+  .play-again-btn {
+    padding: 0.65rem 2rem;
+    font-size: 0.55rem;
   }
 
-  .mode-card {
-    width: 100%;
+  .menu-from-result-btn {
+    padding: 0.55rem 1.2rem;
+    font-size: 0.5rem;
   }
 
-  .menu-hero h2 {
-    font-size: 0.6rem;
+  #result-heading {
+    font-size: 1.1rem;
   }
 
-  h2 {
+  /* Modal */
+  .modal-content {
+    padding: 1.25rem 1rem;
+    margin: 0.5rem;
+    max-width: 100%;
+  }
+
+  .modal-content h2 {
     font-size: 0.75rem;
   }
 
-  .score-current {
-    font-size: 1.1rem;
+  .modal-content #modal-body {
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+  }
+
+  .modal-content #modal-btn {
+    font-size: 0.5rem;
+    padding: 0.6rem 1.5rem;
+  }
+
+  #modal-btn-cancel {
+    font-size: 0.48rem;
+    padding: 0.55rem 1.2rem;
+  }
+
+  .modal-actions {
+    gap: 0.5rem;
+    flex-direction: column;
+  }
+
+  /* Settings modal */
+  .settings-row {
+    padding: 0.55rem 0.6rem;
+    gap: 0.5rem;
+  }
+
+  .settings-icon {
+    font-size: 1.2rem;
+    width: 1.5rem;
+  }
+
+  .settings-label {
+    font-size: 0.95rem;
+  }
+
+  .settings-value {
+    font-size: 0.48rem;
+  }
+
+  /* How to play modal */
+  .howto-content {
+    max-height: 55vh;
+  }
+
+  .howto-section {
+    padding: 0.7rem 0.7rem;
+  }
+
+  .howto-section-header {
+    font-size: 0.55rem;
+  }
+
+  .howto-modes {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .howto-rule {
+    font-size: 0.85rem;
+  }
+
+  .howto-mode-card .howto-mode-name {
+    font-size: 0.5rem;
+  }
+
+  .howto-mode-card .howto-mode-desc {
+    font-size: 0.75rem;
+  }
+
+  /* Changelog modal */
+  .changelog-content {
+    font-size: 0.8rem;
+    max-height: 50vh;
+  }
+
+  .changelog-content h3 {
+    font-size: 0.48rem;
+  }
+
+  .changelog-content ul li {
+    font-size: 0.75rem;
+  }
+
+  /* Name edit modal */
+  .name-edit-input {
+    font-size: 0.95rem;
+    max-width: 100%;
+  }
+
+  .name-edit-label {
+    font-size: 0.85rem;
   }
 }
 
@@ -1820,7 +2117,49 @@ p, .screen-desc {
     max-width: 100%;
     border-radius: 0;
     min-height: 100vh;
-    padding: 1rem;
+    padding: 0.75rem 1rem;
+    border-left: none;
+    border-right: none;
+  }
+
+  header {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.4rem;
+  }
+
+  header h1 {
+    font-size: 0.6rem;
+  }
+
+  .role-indicator {
+    font-size: 0.55rem;
+    padding: 0.1rem 0.35rem;
+  }
+
+  .logo-glitch {
+    font-size: 1.2rem;
+  }
+
+  .menu-hero {
+    margin-bottom: 0.5rem;
+  }
+
+  .menu-buttons {
+    max-width: 320px;
+    gap: 0.5rem;
+  }
+
+  .menu-btn {
+    padding: 0.5rem;
+    font-size: 0.5rem;
+  }
+
+  h2 {
+    font-size: 0.6rem;
+  }
+
+  p, .screen-desc {
+    font-size: 0.85rem;
   }
 
   .ball-grid {
@@ -1829,23 +2168,90 @@ p, .screen-desc {
   }
 
   .ball-btn {
-    padding: 0.6rem;
-    font-size: 0.9rem;
+    padding: 0.5rem;
+    font-size: 0.8rem;
   }
 
   .play-layout {
     flex-direction: row;
   }
 
+  .play-left {
+    gap: 0.3rem;
+  }
+
   .play-right {
-    width: 160px;
+    width: 140px;
   }
 
-  header h1 {
-    font-size: 0.7rem;
+  .ball-log {
+    padding: 0.4rem;
   }
 
-  .logo-glitch {
+  .ball-log-header h3 {
+    font-size: 0.45rem;
+  }
+
+  .ball-log-entries {
+    max-height: 90px;
+  }
+
+  .commentary {
+    max-height: 2.5rem;
+    font-size: 0.75rem;
+  }
+
+  .scoreboard {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .score-current {
+    font-size: 0.9rem;
+  }
+
+  .modal-content {
+    padding: 1rem;
+    margin: 0.5rem;
+  }
+
+  .modal-content h2 {
+    font-size: 0.65rem;
+  }
+
+  .mode-card-wrapper {
+    max-width: 200px;
+  }
+
+  .mode-card {
+    padding: 0.8rem 0.6rem;
+  }
+
+  .mode-icon {
+    font-size: 1.5rem;
+  }
+
+  .rps-btn {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .rps-btn .rps-emoji {
+    font-size: 1.5rem;
+  }
+
+  .choice-btn {
+    padding: 0.8rem 1.2rem;
+  }
+
+  .choice-icon {
+    font-size: 1.8rem;
+  }
+
+  .result-team-card {
+    padding: 0.8rem 1rem;
+  }
+
+  .result-score {
     font-size: 1.4rem;
   }
 }
