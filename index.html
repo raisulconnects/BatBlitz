@@ -29,19 +29,36 @@
         <h2>Welcome to</h2>
         <div class="logo-glitch" data-text="BATBLITZ">BATBLITZ</div>
         <p class="subtitle">A fast-paced cricket game</p>
+        <div class="menu-stats">
+          <div class="stat-card stat-trophies">
+            <span class="stat-icon">🏆</span>
+            <span class="stat-number" id="menu-trophies">0</span>
+            <span class="stat-label">TROPHIES</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-card stat-currency">
+            <span class="stat-icon">🪙</span>
+            <span class="stat-number" id="menu-currency">0</span>
+            <span class="stat-label">COINS</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-card stat-record">
+            <span class="stat-record-text" id="menu-record">W0·L0·D0</span>
+          </div>
+        </div>
       </div>
       <div class="menu-buttons">
         <button class="menu-btn primary-btn" onclick="showModeSelect()">
           <span class="btn-icon">▶</span> PLAY
+        </button>
+        <button class="menu-btn secondary-btn" onclick="showShop()">
+          <span class="btn-icon">🛒</span> SHOP
         </button>
         <button class="menu-btn secondary-btn" onclick="showHowToPlay()">
           <span class="btn-icon">📖</span> HOW TO PLAY
         </button>
         <button class="menu-btn secondary-btn" onclick="showAbout()">
           <span class="btn-icon">ℹ</span> ABOUT
-        </button>
-        <button class="menu-btn secondary-btn" onclick="showChangelog()">
-          <span class="btn-icon">📋</span> CHANGELOG
         </button>
         <button class="menu-btn secondary-btn" onclick="showSettings()">
           <span class="btn-icon">⚙️</span> SETTINGS
@@ -99,6 +116,9 @@
         <p>BatBlitz is a turn-based cricket game where you play quick matches against the computer.</p>
         <p>Choose your mode, win the toss, and decide whether to bat or bowl first.</p>
         <p class="credits">Created by Raisul Connects · 2026</p>
+        <div class="about-changelog" onclick="showChangelog()">
+          <span class="about-changelog-icon">📋</span> View Changelog
+        </div>
       </div>
       <button class="back-btn" onclick="showMenu()">← BACK</button>
     </div>
@@ -173,6 +193,7 @@
             <button class="ball-btn" data-run="6" onclick="playBall(6)">6</button>
           </div>
           <div class="keyboard-hint">[&nbsp;1–6&nbsp;] to <span id="kb-action">bat</span> · [&nbsp;ESC&nbsp;] to close</div>
+          <div id="shield-bar" class="shield-bar-container"></div>
           <div class="toggle-commentary-row" id="toggle-commentary-row" onclick="toggleCommentary()" title="Toggle commentary feed">
             <span class="toggle-commentary-icon" id="toggle-commentary-icon">▼</span>
             <span class="toggle-commentary-label">Commentary</span>
@@ -195,6 +216,7 @@
     <div id="result-screen" class="screen hidden">
       <h2 id="result-heading"></h2>
       <div id="result-details"></div>
+      <div id="result-rewards" class="result-rewards"></div>
       <div class="result-actions">
         <button class="play-again-btn" onclick="playAgain()">▶ PLAY AGAIN</button>
         <button class="secondary-btn menu-from-result-btn" onclick="resetGame()">← MENU</button>

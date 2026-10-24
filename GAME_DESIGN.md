@@ -15,9 +15,10 @@ BatBlitz is a turn-based browser cricket game built with vanilla HTML, CSS, and 
 | `sounds.js` | 8-bit Web Audio API sounds using square/triangle/noise waves: 8 sound functions |
 | `game-logic.test.js` | 87 tests for pure logic (includes `determineTossWinnerHT`) |
 | `sounds.test.js` | 11 tests for sound functions |
-| `ux.test.js` | 42 tests for UX helper functions: `getSavedSoundPreference`, `setSavedSoundPreference`, `getSavedTossMode`, `setSavedTossMode`, `getRunFromKey`, `isPlayBlocked` |
-| `ui.test.js` | 74 tests for UI toggles, ball log empty-message fix, toss back button, changelog.json validation, milestone effects (century, fifty, wicket glow, innings end), role indicator, user-select CSS, how-to-play modal, HTML button structure, settings modal, Heads & Tails HTML, sound-toggle removal |
+| `ux.test.js` | 112 tests for UX helper functions: `getSavedSoundPreference`, `setSavedSoundPreference`, `getSavedTossMode`, `setSavedTossMode`, `getRunFromKey`, `isPlayBlocked`, `getSavedPlayerName`/`setSavedPlayerName`/`getDisplayName`/`getDisplayNamePossessive`, trophy/currency persistence, `updateTrophiesAndCurrency`, `getInventory`/`setInventory`/`getItemCount`/`addItem`/`useItem`, `activateShield`, `getShieldBarHTML` |
+| `ui.test.js` | 152 tests for UI toggles, ball log empty-message fix, toss back button, changelog.json/shop.json validation, milestone effects (century, fifty, wicket glow, innings end), role indicator, user-select CSS, how-to-play modal, HTML button structure, settings modal, Heads & Tails HTML, sound-toggle removal, mode tooltips, player name, responsive CSS, menu stats, result rewards, trophy/currency localStorage keys, `animateRewardCounter`, `showShop`, shield-bar HTML/CSS, shop modal |
 | `changelog.json` | Dynamic changelog data consumed by `showChangelog()` |
+| `shop.json` | Shop item definitions (id, name, description, price, maxPerMatch, icon) consumed by `showShop()` |
 | `CHANGELOG.md` | Version history with all notable changes |
 
 ### External Dependencies (CDN)
@@ -28,22 +29,22 @@ BatBlitz is a turn-based browser cricket game built with vanilla HTML, CSS, and 
 | `tsparticles-confetti` | Rich particle effects: star burst on six, sparkle ring on boundary, red burst on wicket, medal shower on win |
 
 ### Test Coverage
-- **Total**: 214 tests (87 game-logic + 11 sounds + 42 ux + 74 ui)
+- **Total**: 386 tests (87 game-logic + 11 sounds + 112 ux + 152 ui)
 - `shouldEndInnings`: 18 tests
 - Toss redo loop: 4 tests verifying tie auto-retry always produces non-tie
 - `determineTossWinnerHT`: 9 tests covering correct call, wrong call, and edge cases
-- UX helpers (`ux.test.js`): 42 tests across 6 functions with edge case coverage
-- UI toggles (`ui.test.js`): 74 tests covering ball log/commentary toggles, empty message removal, toss back button structure, changelog.json format validation, milestone effects, role indicator, user-select CSS, how-to-play modal, HTML button structure, settings modal, Heads & Tails HTML, sound-toggle removal
+- UX helpers (`ux.test.js`): 112 tests across 25+ functions with edge case coverage including trophy/currency persistence, `updateTrophiesAndCurrency` delta calculations, streak tracking, W/L/D counters, `getSavedPlayerName`/`setSavedPlayerName`/`getDisplayName`/`getDisplayNamePossessive`, `getInventory`/`setInventory`/`getItemCount`/`addItem`/`useItem`, `activateShield`, `getShieldBarHTML`
+- UI toggles (`ui.test.js`): 152 tests covering ball log/commentary toggles, empty message removal, toss back button structure, changelog.json/shop.json format validation, milestone effects, role indicator, user-select CSS, how-to-play modal, HTML button structure, settings modal, Heads & Tails HTML, sound-toggle removal, mode tooltips, player name UI, responsive CSS, menu stats, result rewards, trophy/currency localStorage keys, animateRewardCounter, `showShop`, shield-bar HTML/CSS, shop modal CSS
 - All other logic functions fully covered
 
 ### Game Flow
 ```
 Menu → Mode Select → Toss (RPS or Heads & Tails) → Choice (bat/bowl) → Play → Result → Menu
-Settings accessible from Menu at any time
+Settings and Shop accessible from Menu at any time
 ```
 
 ### Screens
-1. **Menu** — Glitch-text logo, neon "PLAY" button, About button, CHANGELOG button, SETTINGS button, selected mode label
+1. **Menu** — Glitch-text logo, HUD-style stats bar (🏆 trophies, 🪙 coins, W/L/D record with GSAP counter animation), neon "PLAY" button, SHOP button (🛒), About button, CHANGELOG button (inside About), SETTINGS button, selected mode label
 2. **Mode Select** — Three glassmorphism cards (Quick/T20/Test) with hover glow
 3. **About** — Description and credits
 4. **Toss** — Rock Paper Scissors OR Heads & Tails (configurable in Settings), with hover scale + AI reveal sound. Toss screen dynamically shows RPS buttons or HT buttons based on `tossMode` setting.
@@ -99,6 +100,7 @@ Formats as `overs.balls` (e.g., 13 balls → "2.1").
 - Status message (innings + role)
 - Last ball with flash animation (green/red/blue/orange highlight)
 - Ball grid (buttons 1–6 with hover glow, blue for "4", gold for "6")
+- Shield bar (below keyboard hint): shield activation buttons when batting or active shield indicator with green pulsing glow
 - Keyboard hint ("[1-6] to bat/bowl · [ESC] to close")
 - Commentary toggle row (chevron icon + label, collapses/expands the feed)
 - Commentary area (dimmed monospace, collapsible, with empty state)
@@ -183,6 +185,7 @@ const game = {
   tossWinner: null,        // 'user' | 'ai'
   userRole: null,          // 'bat' | 'bowl'
   aiRole: null,
+  activeShield: null,      // { id: string, remaining: number } | null
   innings1: { battingTeam, score, wickets, balls, target },
   innings2: { battingTeam, score, wickets, balls },
   currentInnings: null,
@@ -207,6 +210,31 @@ const game = {
 - Powered by `updateRoleIndicator()` called inside `render()`
 - Tracks previous label via module-level `lastRoleIndicator` to avoid re-animating when nothing changed
 
+### Trophy & Currency System (`script.js`)
+Persistent career progression tracked in localStorage:
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `batblitz-trophies` | `0` | Career trophy count (goes up/down, min 0) |
+| `batblitz-currency` | `0` | Spendable coins (earn-only, min 0) |
+| `batblitz-streak` | `0` | Current streak (positive=wins, negative=losses, 0=draw) |
+| `batblitz-wins` | `0` | Total career wins |
+| `batblitz-losses` | `0` | Total career losses |
+| `batblitz-draws` | `0` | Total career draws |
+
+**Reward Table:**
+
+| Outcome | Trophies | Streak Bonus | Currency |
+|---------|:--------:|:------------:|:--------:|
+| Win | +10 | +2 per streak (max +10 at 5) | 30 (Quick) / 80 (T20) / 120 (Test) |
+| Loss | -5 (floor 0) | -1 extra per streak (max -5 at 5) | +5 consolation |
+| Draw | +2 | — | +10 |
+
+- **`updateTrophiesAndCurrency(result, mode)`** called in `endGame()` before showing result screen. Calculates deltas, applies streak bonus/penalty, persists all six values, and returns `{ trophiesDelta, currencyDelta, streak, totalTrophies, totalCurrency }` for UI display.
+- **Menu stats**: HUD-style glassmorphism card below logo showing 🏆 trophies count, 🪙 coins count, and W/L/D record. GSAP counter animation on each menu visit via `animateMenuStats()`. Record updated via `updateMenuRecord()`.
+- **Result rewards**: Two glassmorphism cards (trophies left, coins right) with GSAP-driven counter animation. Delta ticks up/down with `power2.out` easing over 800ms, then a CSS `counter-pop` scale bounce (`1 → 1.3 → 1`) on completion. Streak info (🔥 WIN STREAK / 💔 LOSS STREAK / 🤝 NO STREAK) fades in after trophy counter finishes with a slide-up transition.
+- Streak bonus caps at +10 for 5+ consecutive wins. Extra penalty caps at -5 for 5+ consecutive losses.
+
 ### Exported Testable Helpers
 | Function | Signature | Description |
 |----------|-----------|-------------|
@@ -224,8 +252,80 @@ const game = {
 | `triggerParticles` | `(type) → void` | Fires confetti burst by type: six, four, wicket, win, century, fifty |
 | `updateRoleIndicator` | `() → void` | Updates header badge to show current role (BATTING/BOWLING) or idle state |
 | `game` | `→ Object` | Reference to the global game state object (for test inspection) |
+| `getSavedTrophies` / `setSavedTrophies` | `→ number` / `(val) → void` | Persists career trophies to `batblitz-trophies` |
+| `getSavedCurrency` / `setSavedCurrency` | `→ number` / `(val) → void` | Persists coins to `batblitz-currency` |
+| `getSavedStreak` / `setSavedStreak` | `→ number` / `(val) → void` | Persists streak to `batblitz-streak` |
+| `getSavedWins` / `setSavedWins` | `→ number` / `(val) → void` | Persists win counter to `batblitz-wins` |
+| `getSavedLosses` / `setSavedLosses` | `→ number` / `(val) → void` | Persists loss counter to `batblitz-losses` |
+| `getSavedDraws` / `setSavedDraws` | `→ number` / `(val) → void` | Persists draw counter to `batblitz-draws` |
+| `updateTrophiesAndCurrency` | `(result, mode) → Object` | Calculates rewards, persists, returns delta/streak/totals |
+| `animateRewardCounter` | `(elementId, delta) → void` | Animates number counter from 0 to delta using requestAnimationFrame |
+| `getInventory` | `() → Object` | Parses `batblitz-inventory` from localStorage |
+| `setInventory` | `(obj) → void` | Writes inventory to `batblitz-inventory` |
+| `getItemCount` | `(id) → number` | Returns quantity of an inventory item |
+| `addItem` | `(id, count?) → void` | Adds to inventory quantity |
+| `useItem` | `(id) → boolean` | Decrements inventory, returns success |
+| `showShop` | `() → void` | Opens shop modal (fetches shop.json) |
+| `activateShield` | `(id) → void` | Actives a shield powerup during play |
+| `getShieldBarHTML` | `() → string` | Returns shield bar HTML for render() |
 
-## Settings Modal (`script.js`)
+## Shop & Inventory System (`script.js`)
+
+### Shop Modal
+- Launched via "🛒 SHOP" button in main menu (between PLAY and HOW TO PLAY)
+- Uses `showModal()` system with GSAP entrance animation
+- Fetches item definitions from `shop.json` (dynamically loaded, like changelog)
+- Shows loading state while fetching, error state on failure
+- Renders each item as a `.shop-item` row with icon, name, description, price, and owned count
+- Price displayed as coin amount or "—" when price is 0 (to be set later)
+- Dismissed via "GOT IT" confirm button
+
+### Inventory (`localStorage`)
+Persistent inventory tracked in localStorage key `batblitz-inventory`:
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `batblitz-inventory` | JSON string `{ itemId: count }` | Maps item IDs to quantity owned |
+
+**Helper functions:**
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `getInventory` | `() → Object` | Parses `batblitz-inventory` from localStorage, defaults to `{}` |
+| `setInventory` | `(obj) → void` | Writes inventory object to `batblitz-inventory` |
+| `getItemCount` | `(id) → number` | Returns quantity of a specific item (0 if not found) |
+| `addItem` | `(id, count?) → void` | Adds `count` (default 1) to item's quantity |
+| `useItem` | `(id) → boolean` | Decrements item count by 1, returns `true` if had stock |
+
+### Powerup Items (`shop.json`)
+
+| ID | Name | Icon | Protection | Price |
+|----|------|:----:|:----------:|:-----:|
+| `shield-1` | Bat Shield | 🛡️ | 1 ball | TBD (0) |
+| `shield-2` | Reinforced Bat Shield | 🔰 | 2 balls | TBD (0) |
+
+### Shield Activation (In-Match)
+- When batting, if player has shields in inventory and no shield is active, a `.shield-bar` appears with shield button(s)
+- Each button shows icon, name, and owned count (e.g. "🛡️ Bat Shield (2)")
+- Clicking a shield button:
+  1. Calls `useItem(id)` to decrement inventory (consumed on activation)
+  2. Sets `game.activeShield = { id, remaining: charges }` where charges = 1 for `shield-1`, 2 for `shield-2`
+  3. Shield bar updates to show "🛡️ Bat Shield active (1 ball)" with green pulsing glow
+- Shield bar renders via `getShieldBarHTML()` inside `render()`
+- Shield bar hidden when bowling, when no shields owned, or when `game.phase !== 'play'`
+
+### Shield Logic (`playBall()`)
+- After `getBallResult()` but before out processing:
+  1. If `game.activeShield` is set and `result.isOut` is `true`:
+     - `result.isOut` set to `false` (negates the dismissal)
+     - `shieldSaved = true`
+     - `game.activeShield.remaining--` decrements remaining charges
+     - If remaining reaches 0, `game.activeShield` set to `null`
+  2. Shield-saved ball:
+     - No runs added (it was a wicket ball)
+     - Status message shows "🛡️ Bat Shield saved you!" or "🛡️ Reinforced Shield saved you!"
+     - No wicket sound, wicket particles, or screen shake
+     - Shield-saved flag recorded in ball history entry (`.shieldSaved`)
+- Shield persists across balls until all charges are consumed (remaining reaches 0)
 
 - **Volume mute toggle**: Toggles `soundEnabled` on/off. When muted (`OFF`), no sound functions are called anywhere in the game. Persisted to `batblitz-sound` in localStorage.
 - **Toss mode selector**: Switches between `'rps'` (Rock Paper Scissors) and `'ht'` (Heads & Tails) toss modes. Persisted to `batblitz-toss-mode` in localStorage.

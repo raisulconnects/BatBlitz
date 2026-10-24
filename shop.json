@@ -1,0 +1,18 @@
+[
+  {
+    "id": "shield-1",
+    "name": "Bat Shield",
+    "description": "Negates 1 dismissal while batting. Activate before a ball — you're protected for 1 ball.",
+    "price": 50,
+    "maxPerMatch": 1,
+    "icon": "🛡️"
+  },
+  {
+    "id": "shield-2",
+    "name": "Reinforced Bat Shield",
+    "description": "Negates up to 2 dismissals while batting. Activate before a ball — you're protected for 2 balls.",
+    "price": 100,
+    "maxPerMatch": 1,
+    "icon": "🔰"
+  }
+]

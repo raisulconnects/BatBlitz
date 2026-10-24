@@ -24,6 +24,26 @@ var {
   setSavedPlayerName,
   getDisplayName,
   getDisplayNamePossessive,
+  getSavedTrophies,
+  setSavedTrophies,
+  getSavedCurrency,
+  setSavedCurrency,
+  getSavedStreak,
+  getSavedWins,
+  getSavedLosses,
+  getSavedDraws,
+  animateRewardCounter,
+  showShop,
+  getShieldBarHTML,
+  activateShield,
+  getInventory,
+  setInventory,
+  getItemCount,
+  addItem,
+  useItem,
+  setCachedShopItems,
+  buyItem,
+  renderShopContent,
 } = require('./script');
 var fs = require('fs');
 var path = require('path');
@@ -1154,5 +1174,591 @@ describe('responsive mobile CSS', function () {
     if (mobileBlock) {
       expect(mobileBlock[0]).toMatch(/\.settings-row\s*\{[^}]*padding:\s*0\.55rem/);
     }
+  });
+});
+
+describe('menu stats display', function () {
+  var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+
+  test('menu has trophy stat element', function () {
+    expect(html).toContain('id="menu-trophies"');
+  });
+
+  test('menu has currency stat element', function () {
+    expect(html).toContain('id="menu-currency"');
+  });
+
+  test('menu stats container exists', function () {
+    expect(html).toContain('class="menu-stats"');
+  });
+
+  test('menu stats trophy icon present', function () {
+    expect(html).toContain('\u{1F3C6}');
+  });
+
+  test('menu stats coin icon present', function () {
+    expect(html).toContain('\u{1FA99}');
+  });
+});
+
+describe('result rewards display', function () {
+  var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+
+  test('result screen has rewards container', function () {
+    expect(html).toContain('id="result-rewards"');
+  });
+
+  test('result rewards has rewards-container class', function () {
+    expect(html).toContain('class="result-rewards"');
+  });
+});
+
+describe('trophy and currency localStorage keys in script.js', function () {
+  var js = fs.readFileSync(path.resolve(__dirname, 'script.js'), 'utf8');
+
+  test('script.js uses batblitz-trophies localStorage key', function () {
+    expect(js).toContain('batblitz-trophies');
+  });
+
+  test('script.js uses batblitz-currency localStorage key', function () {
+    expect(js).toContain('batblitz-currency');
+  });
+
+  test('script.js uses batblitz-streak localStorage key', function () {
+    expect(js).toContain('batblitz-streak');
+  });
+
+  test('script.js uses batblitz-wins localStorage key', function () {
+    expect(js).toContain('batblitz-wins');
+  });
+
+  test('script.js uses batblitz-losses localStorage key', function () {
+    expect(js).toContain('batblitz-losses');
+  });
+
+  test('script.js uses batblitz-draws localStorage key', function () {
+    expect(js).toContain('batblitz-draws');
+  });
+});
+
+describe('animateRewardCounter', function () {
+  test('is a function', function () {
+    expect(typeof animateRewardCounter).toBe('function');
+  });
+
+  test('does not throw when element does not exist', function () {
+    expect(function () { animateRewardCounter('nonexistent', 10); }).not.toThrow();
+  });
+
+  test('does not throw with negative delta', function () {
+    expect(function () { animateRewardCounter('nonexistent', -5); }).not.toThrow();
+  });
+});
+
+describe('getSavedTrophies in UI', function () {
+  test('is a function', function () {
+    expect(typeof getSavedTrophies).toBe('function');
+  });
+});
+
+describe('getSavedCurrency in UI', function () {
+  test('is a function', function () {
+    expect(typeof getSavedCurrency).toBe('function');
+  });
+});
+
+describe('menu stats CSS', function () {
+  var css = fs.readFileSync(path.resolve(__dirname, 'style.css'), 'utf8');
+
+  test('menu-stats has flex display', function () {
+    expect(css).toMatch(/\.menu-stats\s*\{[^}]*display:\s*flex/);
+  });
+
+  test('menu-stats has centered alignment', function () {
+    expect(css).toMatch(/\.menu-stats\s*\{[^}]*justify-content:\s*center/);
+  });
+
+  test('stat-trophies has gold color', function () {
+    expect(css).toMatch(/\.stat-trophies\s*\.stat-number\s*\{[^}]*color:\s*#ffd700/);
+  });
+
+  test('stat-currency has amber color', function () {
+    expect(css).toMatch(/\.stat-currency\s*\.stat-number\s*\{[^}]*color:\s*#ffaa00/);
+  });
+});
+
+describe('result rewards CSS', function () {
+  var css = fs.readFileSync(path.resolve(__dirname, 'style.css'), 'utf8');
+
+  test('rewards-container has flex display', function () {
+    expect(css).toMatch(/\.rewards-container\s*\{[^}]*display:\s*flex/);
+  });
+
+  test('reward-item has glassmorphism background', function () {
+    expect(css).toMatch(/\.reward-item\s*\{[^}]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.04\)/);
+  });
+
+  test('reward-minus has red border', function () {
+    expect(css).toMatch(/\.reward-item\.reward-minus\s*\{[^}]*border-color:\s*rgba\(255,\s*51,\s*51,\s*0\.25\)/);
+  });
+
+  test('reward-plus has green border', function () {
+    expect(css).toMatch(/\.reward-item\.reward-plus\s*\{[^}]*border-color:\s*rgba\(57,\s*255,\s*20,\s*0\.25\)/);
+  });
+
+  test('reward-coin has gold border', function () {
+    expect(css).toMatch(/\.reward-item\.reward-coin\s*\{[^}]*border-color:\s*rgba\(255,\s*170,\s*0,\s*0\.25\)/);
+  });
+});
+
+describe('mobile menu stats CSS', function () {
+  var css = fs.readFileSync(path.resolve(__dirname, 'style.css'), 'utf8');
+
+  test('menu-stats padding reduced on mobile', function () {
+    var mobileBlock = css.match(/@media\s*\(max-width:\s*600px\)[\s\S]*?^}/m);
+    expect(mobileBlock).not.toBeNull();
+    if (mobileBlock) {
+      expect(mobileBlock[0]).toMatch(/\.menu-stats\s*\{[^}]*padding:\s*0\.4rem/);
+    }
+  });
+});
+
+describe('shop.json', function () {
+  var shopPath = path.resolve(__dirname, 'shop.json');
+
+  test('file exists', function () {
+    expect(fs.existsSync(shopPath)).toBe(true);
+  });
+
+  test('parses as valid JSON', function () {
+    var content = fs.readFileSync(shopPath, 'utf8');
+    var data = JSON.parse(content);
+    expect(Array.isArray(data)).toBe(true);
+  });
+
+  test('contains at least one item', function () {
+    var content = fs.readFileSync(shopPath, 'utf8');
+    var data = JSON.parse(content);
+    expect(data.length).toBeGreaterThanOrEqual(1);
+  });
+
+  test('each item has id, name, description, price, maxPerMatch, icon', function () {
+    var content = fs.readFileSync(shopPath, 'utf8');
+    var data = JSON.parse(content);
+    for (var i = 0; i < data.length; i++) {
+      expect(typeof data[i].id).toBe('string');
+      expect(typeof data[i].name).toBe('string');
+      expect(typeof data[i].description).toBe('string');
+      expect(typeof data[i].price).toBe('number');
+      expect(typeof data[i].maxPerMatch).toBe('number');
+      expect(typeof data[i].icon).toBe('string');
+    }
+  });
+
+  test('contains shield-1 (Bat Shield) item', function () {
+    var content = fs.readFileSync(shopPath, 'utf8');
+    var data = JSON.parse(content);
+    var shield = data.find(function(i) { return i.id === 'shield-1'; });
+    expect(shield).toBeDefined();
+    expect(shield.name).toContain('Bat Shield');
+  });
+
+  test('contains shield-2 (Reinforced Bat Shield) item', function () {
+    var content = fs.readFileSync(shopPath, 'utf8');
+    var data = JSON.parse(content);
+    var shield = data.find(function(i) { return i.id === 'shield-2'; });
+    expect(shield).toBeDefined();
+    expect(shield.name).toContain('Reinforced');
+  });
+
+  test('each item has non-empty id', function () {
+    var content = fs.readFileSync(shopPath, 'utf8');
+    var data = JSON.parse(content);
+    for (var i = 0; i < data.length; i++) {
+      expect(data[i].id.length).toBeGreaterThan(0);
+    }
+  });
+
+  test('each item has price greater than 0', function () {
+    var content = fs.readFileSync(shopPath, 'utf8');
+    var data = JSON.parse(content);
+    for (var i = 0; i < data.length; i++) {
+      expect(data[i].price).toBeGreaterThan(0);
+    }
+  });
+
+  test('shield-1 price is 50', function () {
+    var content = fs.readFileSync(shopPath, 'utf8');
+    var data = JSON.parse(content);
+    var shield = data.find(function(i) { return i.id === 'shield-1'; });
+    expect(shield.price).toBe(50);
+  });
+
+  test('shield-2 price is 100', function () {
+    var content = fs.readFileSync(shopPath, 'utf8');
+    var data = JSON.parse(content);
+    var shield = data.find(function(i) { return i.id === 'shield-2'; });
+    expect(shield.price).toBe(100);
+  });
+});
+
+describe('shop button in HTML', function () {
+  var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+
+  test('index.html contains SHOP button', function () {
+    expect(html).toContain('SHOP');
+  });
+
+  test('shop button calls showShop', function () {
+    expect(html).toContain('onclick="showShop()"');
+  });
+
+  test('shop button is between PLAY and HOW TO PLAY', function () {
+    var playIdx = html.indexOf('PLAY');
+    var shopIdx = html.indexOf('SHOP');
+    var howToPlayIdx = html.indexOf('HOW TO PLAY');
+    expect(shopIdx).toBeGreaterThan(playIdx);
+    expect(shopIdx).toBeLessThan(howToPlayIdx);
+  });
+});
+
+describe('showShop', function () {
+  var modalOverlay;
+  var modalHeading;
+  var modalBody;
+  var modalBtn;
+
+  beforeAll(function () {
+    global.fetch = function () {
+      return Promise.resolve({
+        ok: true,
+        json: function () { return Promise.resolve([]); }
+      });
+    };
+    modalOverlay = document.createElement('div');
+    modalOverlay.id = 'event-modal';
+    modalOverlay.className = 'modal-overlay hidden';
+    document.body.appendChild(modalOverlay);
+
+    var modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    modalOverlay.appendChild(modalContent);
+
+    modalHeading = document.createElement('h2');
+    modalHeading.id = 'modal-heading';
+    modalContent.appendChild(modalHeading);
+
+    modalBody = document.createElement('div');
+    modalBody.id = 'modal-body';
+    modalContent.appendChild(modalBody);
+
+    modalBtn = document.createElement('button');
+    modalBtn.id = 'modal-btn';
+    modalContent.appendChild(modalBtn);
+  });
+
+  afterAll(function () {
+    delete global.fetch;
+    if (modalOverlay && modalOverlay.parentNode) modalOverlay.parentNode.removeChild(modalOverlay);
+  });
+
+  beforeEach(function () {
+    modalOverlay.classList.add('hidden');
+    modalHeading.textContent = '';
+    modalBody.innerHTML = '';
+  });
+
+  test('is a function', function () {
+    expect(typeof showShop).toBe('function');
+  });
+
+  test('opens modal with SHOP heading', function () {
+    showShop();
+    expect(modalOverlay.classList.contains('hidden')).toBe(false);
+    expect(modalHeading.textContent).toContain('SHOP');
+  });
+
+  test('modal has GOT IT button', function () {
+    showShop();
+    expect(modalBtn.textContent).toBe('GOT IT');
+  });
+
+  test('modal body shows loading state', function () {
+    showShop();
+    expect(modalBody.innerHTML).toContain('Loading');
+  });
+});
+
+describe('renderShopContent', function () {
+  var modalOverlay2;
+  var modalBody2;
+
+  beforeAll(function () {
+    modalOverlay2 = document.createElement('div');
+    modalOverlay2.id = 'event-modal';
+    modalOverlay2.className = 'modal-overlay hidden';
+    document.body.appendChild(modalOverlay2);
+    var modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    modalOverlay2.appendChild(modalContent);
+    var heading = document.createElement('h2');
+    heading.id = 'modal-heading';
+    modalContent.appendChild(heading);
+    modalBody2 = document.createElement('div');
+    modalBody2.id = 'modal-body';
+    modalContent.appendChild(modalBody2);
+    var btn = document.createElement('button');
+    btn.id = 'modal-btn';
+    modalContent.appendChild(btn);
+  });
+
+  afterAll(function () {
+    if (modalOverlay2 && modalOverlay2.parentNode) modalOverlay2.parentNode.removeChild(modalOverlay2);
+  });
+
+  beforeEach(function () {
+    localStorage.clear();
+    modalBody2.innerHTML = '';
+    setCachedShopItems([
+      { id: 'shield-1', name: 'Bat Shield', description: 'Test', price: 50, icon: '\u{1F6E1}\uFE0F' },
+      { id: 'shield-2', name: 'Shield 2', description: 'Test 2', price: 100, icon: '\u{1F530}' }
+    ]);
+    setSavedCurrency(200);
+    setInventory({});
+  });
+
+  test('displays coin balance', function () {
+    renderShopContent();
+    expect(modalBody2.innerHTML).toContain('Balance');
+    expect(modalBody2.innerHTML).toContain('200');
+  });
+
+  test('renders BUY button for each item', function () {
+    renderShopContent();
+    expect(modalBody2.innerHTML).toContain('BUY');
+    var buyCount = (modalBody2.innerHTML.match(/BUY/g) || []).length;
+    expect(buyCount).toBe(2);
+  });
+
+  test('BUY button calls buyItem with correct id', function () {
+    renderShopContent();
+    expect(modalBody2.innerHTML).toContain('onclick="buyItem(\'shield-1\')"');
+    expect(modalBody2.innerHTML).toContain('onclick="buyItem(\'shield-2\')"');
+  });
+
+  test('BUY button is enabled when user can afford item', function () {
+    renderShopContent();
+    expect(modalBody2.innerHTML).not.toContain('shop-btn-disabled');
+  });
+
+  test('BUY button is disabled when user cannot afford item', function () {
+    setSavedCurrency(30);
+    renderShopContent();
+    expect(modalBody2.innerHTML).toContain('shop-btn-disabled');
+    expect(modalBody2.innerHTML).toContain('disabled');
+  });
+
+  test('BUY button disabled for expensive item when coins are low', function () {
+    setSavedCurrency(60);
+    renderShopContent();
+    var disabledAttrCount = (modalBody2.innerHTML.match(/ disabled/g) || []).length;
+    // shield-1 costs 50 (affordable), shield-2 costs 100 (not affordable) — should have 1 disabled attribute
+    expect(disabledAttrCount).toBe(1);
+  });
+
+  test('shows owned count of 0 when inventory is empty', function () {
+    renderShopContent();
+    expect(modalBody2.innerHTML).toContain('OWNED: 0');
+  });
+
+  test('shows owned count from inventory', function () {
+    setInventory({ 'shield-1': 3 });
+    renderShopContent();
+    expect(modalBody2.innerHTML).toContain('OWNED: 3');
+  });
+});
+
+describe('buyItem UI interaction', function () {
+  var modalOverlay3;
+  var modalBody3;
+
+  beforeAll(function () {
+    modalOverlay3 = document.createElement('div');
+    modalOverlay3.id = 'event-modal';
+    modalOverlay3.className = 'modal-overlay hidden';
+    document.body.appendChild(modalOverlay3);
+    var modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    modalOverlay3.appendChild(modalContent);
+    var heading = document.createElement('h2');
+    heading.id = 'modal-heading';
+    modalContent.appendChild(heading);
+    modalBody3 = document.createElement('div');
+    modalBody3.id = 'modal-body';
+    modalContent.appendChild(modalBody3);
+    var btn = document.createElement('button');
+    btn.id = 'modal-btn';
+    modalContent.appendChild(btn);
+    var menuCurrency = document.createElement('span');
+    menuCurrency.id = 'menu-currency';
+    document.body.appendChild(menuCurrency);
+  });
+
+  afterAll(function () {
+    if (modalOverlay3 && modalOverlay3.parentNode) modalOverlay3.parentNode.removeChild(modalOverlay3);
+    var el = document.getElementById('menu-currency');
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  });
+
+  beforeEach(function () {
+    localStorage.clear();
+    modalBody3.innerHTML = '';
+    setCachedShopItems([
+      { id: 'shield-1', name: 'Bat Shield', description: 'Test', price: 50, icon: '\u{1F6E1}\uFE0F' },
+      { id: 'shield-2', name: 'Shield 2', description: 'Test 2', price: 100, icon: '\u{1F530}' }
+    ]);
+    setSavedCurrency(200);
+    setInventory({});
+    document.getElementById('menu-currency').textContent = '';
+  });
+
+  test('buyItem deducts coins and adds item to inventory', function () {
+    buyItem('shield-1');
+    expect(getSavedCurrency()).toBe(150);
+    expect(getItemCount('shield-1')).toBe(1);
+  });
+
+  test('buyItem does nothing when not enough coins', function () {
+    setSavedCurrency(30);
+    buyItem('shield-1');
+    expect(getSavedCurrency()).toBe(30);
+    expect(getItemCount('shield-1')).toBe(0);
+  });
+
+  test('buyItem does nothing for invalid item id', function () {
+    buyItem('nonexistent');
+    expect(getSavedCurrency()).toBe(200);
+  });
+
+  test('buyItem updates menu-currency element', function () {
+    buyItem('shield-1');
+    expect(document.getElementById('menu-currency').textContent).toBe('150');
+  });
+
+  test('buyItem re-renders shop content after purchase', function () {
+    renderShopContent();
+    buyItem('shield-1');
+    expect(modalBody3.innerHTML).toContain('Balance');
+    expect(modalBody3.innerHTML).toContain('150');
+  });
+
+  test('multiple purchases accumulate inventory', function () {
+    buyItem('shield-1');
+    buyItem('shield-1');
+    expect(getItemCount('shield-1')).toBe(2);
+    expect(getSavedCurrency()).toBe(100);
+  });
+});
+
+describe('shield-bar in HTML', function () {
+  var html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+
+  test('index.html contains shield-bar container', function () {
+    expect(html).toContain('id="shield-bar"');
+  });
+
+  test('shield-bar container has shield-bar-container class', function () {
+    expect(html).toContain('class="shield-bar-container"');
+  });
+
+  test('shield-bar is after keyboard-hint', function () {
+    var kbIdx = html.indexOf('keyboard-hint');
+    var shieldIdx = html.indexOf('shield-bar');
+    expect(shieldIdx).toBeGreaterThan(kbIdx);
+  });
+});
+
+describe('shield bar CSS', function () {
+  var css = fs.readFileSync(path.resolve(__dirname, 'style.css'), 'utf8');
+
+  test('shield-bar-container has flex display', function () {
+    expect(css).toMatch(/\.shield-bar-container\s*\{[^}]*display:\s*flex/);
+  });
+
+  test('shield-btn class exists in CSS', function () {
+    expect(css).toMatch(/\.shield-btn\s*\{/);
+  });
+
+  test('shield-bar.shield-active class exists', function () {
+    expect(css).toMatch(/\.shield-bar\.shield-active/);
+  });
+
+  test('shield-pulse animation exists', function () {
+    expect(css).toMatch(/@keyframes shield-pulse/);
+  });
+
+  test('shield-btn-reinforced has amber styling', function () {
+    expect(css).toMatch(/\.shield-btn-reinforced\s*\{[^}]*color:\s*#ffaa00/);
+  });
+});
+
+describe('shop modal CSS', function () {
+  var css = fs.readFileSync(path.resolve(__dirname, 'style.css'), 'utf8');
+
+  test('shop-content class exists in CSS', function () {
+    expect(css).toMatch(/\.shop-content\s*\{/);
+  });
+
+  test('shop-item class exists in CSS', function () {
+    expect(css).toMatch(/\.shop-item\s*\{/);
+  });
+
+  test('shop-item-name uses Press Start 2P font', function () {
+    expect(css).toMatch(/\.shop-item-name\s*\{[^}]*Press Start 2P/);
+  });
+
+  test('shop-item-price has amber color', function () {
+    expect(css).toMatch(/\.shop-item-price\s*\{[^}]*color:\s*#ffaa00/);
+  });
+
+  test('shop-buy-btn class exists in CSS', function () {
+    expect(css).toMatch(/\.shop-buy-btn\s*\{/);
+  });
+
+  test('shop-btn-disabled class exists in CSS', function () {
+    expect(css).toMatch(/\.shop-btn-disabled\s*\{/);
+  });
+
+  test('shop-balance class exists in CSS', function () {
+    expect(css).toMatch(/\.shop-balance\s*\{/);
+  });
+
+  test('shop-coins class exists in CSS', function () {
+    expect(css).toMatch(/\.shop-coins\s*\{/);
+  });
+
+  test('shop-buy-btn uses Press Start 2P font', function () {
+    expect(css).toMatch(/\.shop-buy-btn\s*\{[^}]*Press Start 2P/);
+  });
+
+  test('shop-btn-disabled has pointer-events none', function () {
+    expect(css).toMatch(/\.shop-btn-disabled\s*\{[^}]*pointer-events:\s*none/);
+  });
+});
+
+describe('getShieldBarHTML in UI', function () {
+  test('is a function', function () {
+    expect(typeof getShieldBarHTML).toBe('function');
+  });
+
+  test('returns empty string when phase is not play', function () {
+    game.phase = 'menu';
+    expect(getShieldBarHTML()).toBe('');
+  });
+
+  test('returns empty string when currentInnings is null', function () {
+    game.phase = 'play';
+    game.currentInnings = null;
+    expect(getShieldBarHTML()).toBe('');
   });
 });

@@ -419,6 +419,352 @@ function getDisplayNamePossessive() {
   return name === 'You' ? 'Your' : name + "'s";
 }
 
+function getSavedTrophies() {
+  try {
+    var val = localStorage.getItem('batblitz-trophies');
+    if (val === null) return 0;
+    var num = parseInt(val, 10);
+    return isNaN(num) ? 0 : num;
+  } catch (e) { return 0; }
+}
+
+function setSavedTrophies(val) {
+  try { localStorage.setItem('batblitz-trophies', String(val)); } catch (e) {}
+}
+
+function getSavedCurrency() {
+  try {
+    var val = localStorage.getItem('batblitz-currency');
+    if (val === null) return 0;
+    var num = parseInt(val, 10);
+    return isNaN(num) ? 0 : num;
+  } catch (e) { return 0; }
+}
+
+function setSavedCurrency(val) {
+  try { localStorage.setItem('batblitz-currency', String(val)); } catch (e) {}
+}
+
+function getSavedStreak() {
+  try {
+    var val = localStorage.getItem('batblitz-streak');
+    if (val === null) return 0;
+    var num = parseInt(val, 10);
+    return isNaN(num) ? 0 : num;
+  } catch (e) { return 0; }
+}
+
+function setSavedStreak(val) {
+  try { localStorage.setItem('batblitz-streak', String(val)); } catch (e) {}
+}
+
+function getSavedWins() {
+  try {
+    var val = localStorage.getItem('batblitz-wins');
+    if (val === null) return 0;
+    var num = parseInt(val, 10);
+    return isNaN(num) ? 0 : num;
+  } catch (e) { return 0; }
+}
+
+function setSavedWins(val) {
+  try { localStorage.setItem('batblitz-wins', String(val)); } catch (e) {}
+}
+
+function getSavedLosses() {
+  try {
+    var val = localStorage.getItem('batblitz-losses');
+    if (val === null) return 0;
+    var num = parseInt(val, 10);
+    return isNaN(num) ? 0 : num;
+  } catch (e) { return 0; }
+}
+
+function setSavedLosses(val) {
+  try { localStorage.setItem('batblitz-losses', String(val)); } catch (e) {}
+}
+
+function getSavedDraws() {
+  try {
+    var val = localStorage.getItem('batblitz-draws');
+    if (val === null) return 0;
+    var num = parseInt(val, 10);
+    return isNaN(num) ? 0 : num;
+  } catch (e) { return 0; }
+}
+
+function setSavedDraws(val) {
+  try { localStorage.setItem('batblitz-draws', String(val)); } catch (e) {}
+}
+
+function getInventory() {
+  try {
+    var val = localStorage.getItem('batblitz-inventory');
+    if (!val) return {};
+    return JSON.parse(val);
+  } catch (e) { return {}; }
+}
+
+function setInventory(obj) {
+  try { localStorage.setItem('batblitz-inventory', JSON.stringify(obj)); } catch (e) {}
+}
+
+function getItemCount(id) {
+  var inv = getInventory();
+  return typeof inv[id] === 'number' ? inv[id] : 0;
+}
+
+function addItem(id, count) {
+  var inv = getInventory();
+  inv[id] = (inv[id] || 0) + (count || 1);
+  setInventory(inv);
+}
+
+function useItem(id) {
+  var inv = getInventory();
+  if (!inv[id] || inv[id] <= 0) return false;
+  inv[id]--;
+  setInventory(inv);
+  return true;
+}
+
+var cachedShopItems = null;
+
+function setCachedShopItems(data) {
+  cachedShopItems = data;
+}
+
+function showShop() {
+  playClickSound();
+  showModal('\u{1F6D2} SHOP', '<div class="shop-content"><p class="shop-loading">Loading...</p></div>', 'GOT IT');
+  fetch('shop.json?' + Date.now()).then(function (r) {
+    if (!r.ok) throw new Error('Failed to load shop');
+    return r.json();
+  }).then(function (data) {
+    cachedShopItems = data;
+    renderShopContent();
+  }).catch(function () {
+    document.getElementById('modal-body').innerHTML = '<div class="shop-content"><p class="shop-loading">Failed to load shop.</p></div>';
+  });
+}
+
+function renderShopContent() {
+  if (!cachedShopItems) return;
+  var inv = getInventory();
+  var coins = getSavedCurrency();
+  var html = '<div class="shop-content">';
+  html += '<div class="shop-balance">\u{1FA99} Balance: <span class="shop-coins">' + coins + '</span></div>';
+  for (var i = 0; i < cachedShopItems.length; i++) {
+    var item = cachedShopItems[i];
+    var count = inv[item.id] || 0;
+    var canAfford = coins >= item.price;
+    html += '<div class="shop-item">' +
+      '<span class="shop-item-icon">' + item.icon + '</span>' +
+      '<div class="shop-item-info">' +
+        '<div class="shop-item-name">' + item.name + '</div>' +
+        '<div class="shop-item-desc">' + item.description + '</div>' +
+      '</div>' +
+      '<div class="shop-item-right">' +
+        '<div class="shop-item-price">' + item.price + ' \u{1FA99}</div>' +
+        '<div class="shop-item-owned">OWNED: ' + count + '</div>' +
+        '<button class="shop-buy-btn' + (canAfford ? '' : ' shop-btn-disabled') + '" onclick="buyItem(\'' + item.id + '\')"' + (canAfford ? '' : ' disabled') + '>BUY</button>' +
+      '</div>' +
+    '</div>';
+  }
+  html += '</div>';
+  if (typeof document !== 'undefined') {
+    document.getElementById('modal-body').innerHTML = html;
+  }
+}
+
+function buyItem(id) {
+  if (!cachedShopItems) return;
+  var item = null;
+  for (var i = 0; i < cachedShopItems.length; i++) {
+    if (cachedShopItems[i].id === id) { item = cachedShopItems[i]; break; }
+  }
+  if (!item) return;
+  var coins = getSavedCurrency();
+  if (coins < item.price) return;
+  setSavedCurrency(coins - item.price);
+  addItem(id, 1);
+  playClickSound();
+  renderShopContent();
+  if (typeof document !== 'undefined') {
+    var menuCoinsEl = document.getElementById('menu-currency');
+    if (menuCoinsEl) menuCoinsEl.textContent = getSavedCurrency();
+  }
+}
+
+function activateShield(id) {
+  if (!useItem(id)) return;
+  var charges = id === 'shield-2' ? 2 : 1;
+  game.activeShield = { id: id, remaining: charges };
+  if (typeof document !== 'undefined') {
+    var shieldBarEl = document.getElementById('shield-bar');
+    if (shieldBarEl) shieldBarEl.innerHTML = getShieldBarHTML();
+  }
+  playClickSound();
+}
+
+function getShieldBarHTML() {
+  if (game.phase !== 'play' || !game.currentInnings) return '';
+  var isUserBatting = game.currentInnings.battingTeam === 'user';
+  if (!isUserBatting) return '';
+
+  if (game.activeShield) {
+    var shieldName = game.activeShield.id === 'shield-2' ? '\u{1F530} Reinforced Shield' : '\u{1F6E1}\uFE0F Bat Shield';
+    var remaining = game.activeShield.remaining;
+    return '<div class="shield-bar shield-active">' + shieldName + ' active (' + remaining + ' ball' + (remaining > 1 ? 's' : '') + ')</div>';
+  }
+
+  var inv = getInventory();
+  var hasShield1 = inv['shield-1'] > 0;
+  var hasShield2 = inv['shield-2'] > 0;
+
+  if (!hasShield1 && !hasShield2) return '';
+
+  var html = '<div class="shield-bar">';
+  if (hasShield1) {
+    html += '<button class="shield-btn" onclick="activateShield(\'shield-1\')">\u{1F6E1}\uFE0F Bat Shield (' + inv['shield-1'] + ')</button>';
+  }
+  if (hasShield2) {
+    html += '<button class="shield-btn shield-btn-reinforced" onclick="activateShield(\'shield-2\')">\u{1F530} Reinforced Shield (' + inv['shield-2'] + ')</button>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function updateTrophiesAndCurrency(result, mode) {
+  var trophies = getSavedTrophies();
+  var currency = getSavedCurrency();
+  var streak = getSavedStreak();
+  var wins = getSavedWins();
+  var losses = getSavedLosses();
+  var draws = getSavedDraws();
+
+  var trophiesDelta = 0;
+  var currencyDelta = 0;
+
+  if (result === 'user') {
+    trophiesDelta = 10;
+    if (streak > 0) {
+      streak++;
+      trophiesDelta += Math.min((streak - 1) * 2, 10);
+    } else {
+      streak = 1;
+    }
+    if (mode === 'quick') currencyDelta = 30;
+    else if (mode === 't20') currencyDelta = 80;
+    else if (mode === 'test') currencyDelta = 120;
+    wins++;
+  } else if (result === 'ai') {
+    trophiesDelta = -5;
+    if (streak < 0) {
+      streak--;
+      trophiesDelta += Math.max(-(Math.abs(streak) - 1), -5);
+    } else {
+      streak = -1;
+    }
+    currencyDelta = 5;
+    losses++;
+  } else {
+    trophiesDelta = 2;
+    currencyDelta = 10;
+    streak = 0;
+    draws++;
+  }
+
+  trophies = Math.max(0, trophies + trophiesDelta);
+  currency += currencyDelta;
+
+  setSavedTrophies(trophies);
+  setSavedCurrency(currency);
+  setSavedStreak(streak);
+  setSavedWins(wins);
+  setSavedLosses(losses);
+  setSavedDraws(draws);
+
+  return {
+    trophiesDelta: trophiesDelta,
+    currencyDelta: currencyDelta,
+    streak: streak,
+    totalTrophies: trophies,
+    totalCurrency: currency,
+  };
+}
+
+function animateRewardCounter(elementId, delta, callback) {
+  var el = document.getElementById(elementId);
+  if (!el) return;
+  var isNegative = delta < 0;
+  var absDelta = Math.abs(delta);
+  var obj = { val: 0 };
+
+  function done() {
+    el.textContent = (isNegative ? '-' : '+') + absDelta;
+    el.classList.add('counter-pop');
+    setTimeout(function () { el.classList.remove('counter-pop'); }, 400);
+    if (callback) callback();
+  }
+
+  if (gsapReady) {
+    gsap.to(obj, {
+      val: absDelta,
+      duration: 0.8,
+      ease: 'power2.out',
+      onUpdate: function () { el.textContent = (isNegative ? '-' : '+') + Math.round(obj.val); },
+      onComplete: done
+    });
+  } else {
+    var start = null;
+    function step(ts) {
+      if (!start) start = ts;
+      var p = Math.min((ts - start) / 600, 1);
+      el.textContent = (isNegative ? '-' : '+') + Math.round(p * absDelta);
+      if (p < 1) requestAnimationFrame(step);
+      else done();
+    }
+    requestAnimationFrame(step);
+  }
+}
+
+function animateMenuStats() {
+  var trophiesEl = document.getElementById('menu-trophies');
+  var currencyEl = document.getElementById('menu-currency');
+  if (!trophiesEl || !currencyEl) return;
+  var targetTrophies = getSavedTrophies();
+  var targetCurrency = getSavedCurrency();
+  trophiesEl.textContent = '0';
+  currencyEl.textContent = '0';
+  if (targetTrophies === 0 && targetCurrency === 0) return;
+
+  if (gsapReady) {
+    var tObj = { val: 0 };
+    gsap.to(tObj, {
+      val: targetTrophies, duration: 0.8, ease: 'power2.out',
+      onUpdate: function () { trophiesEl.textContent = Math.round(tObj.val); }
+    });
+    var cObj = { val: 0 };
+    gsap.to(cObj, {
+      val: targetCurrency, duration: 0.8, ease: 'power2.out', delay: 0.15,
+      onUpdate: function () { currencyEl.textContent = Math.round(cObj.val); }
+    });
+  } else {
+    trophiesEl.textContent = targetTrophies;
+    currencyEl.textContent = targetCurrency;
+  }
+}
+
+function updateMenuRecord() {
+  var el = document.getElementById('menu-record');
+  if (!el) return;
+  var wins = getSavedWins();
+  var losses = getSavedLosses();
+  var draws = getSavedDraws();
+  el.textContent = 'W' + wins + '\u00B7L' + losses + '\u00B7D' + draws;
+}
+
 function renderSettingsBody() {
   var headingEl = document.getElementById('modal-heading');
   var bodyEl = document.getElementById('modal-body');
@@ -490,6 +836,7 @@ const game = {
   tossWinner: null,
   userTossPick: null,
   aiTossPick: null,
+  activeShield: null,
   userRole: null,
   aiRole: null,
   innings1: { battingTeam: null, score: 0, wickets: 0, balls: 0, target: null },
@@ -505,6 +852,8 @@ const game = {
 
 function showMenu() {
   showScreen('menu', 'left');
+  animateMenuStats();
+  updateMenuRecord();
 }
 
 function showModeSelect() {
@@ -757,6 +1106,7 @@ function initInnings() {
   game.ballHistory = [];
   game.milestones = { fifty: false, hundred: false };
   game.result = null;
+  game.activeShield = null;
   document.getElementById('ball-log-entries').innerHTML = '<div class="ball-log-empty">No balls bowled yet</div>';
   document.getElementById('commentary-area').innerHTML = '<div class="commentary-empty">Commentary will appear here</div>';
 }
@@ -783,11 +1133,27 @@ function playBall(userPick) {
   }
 
   var result = getBallResult(batterPick, bowlerPick);
+
+  var shieldSaved = false;
+  if (game.activeShield) {
+    var shieldName = game.activeShield.id === 'shield-2' ? 'Reinforced Shield' : 'Bat Shield';
+    if (result.isOut) {
+      result.isOut = false;
+      shieldSaved = true;
+    }
+    game.activeShield.remaining--;
+    if (game.activeShield.remaining <= 0) {
+      game.activeShield = null;
+    }
+  }
+
   game.currentInnings.balls++;
 
   if (result.isOut) {
     game.currentInnings.wickets++;
     triggerWicketGlow();
+  } else if (shieldSaved) {
+    game.message = '\u{1F6E1}\uFE0F ' + shieldName + ' saved you!';
   } else {
     game.currentInnings.score += result.runs;
     if (!game.milestones.fifty && game.currentInnings.score >= 50) {
@@ -814,6 +1180,7 @@ function playBall(userPick) {
     bowlerPick: bowlerPick,
     runs: result.runs,
     isOut: result.isOut,
+    shieldSaved: shieldSaved,
   });
   if (game.ballHistory.length > 30) game.ballHistory.shift();
 
@@ -942,12 +1309,14 @@ function endInnings1() {
   game.currentInnings.wickets = 0;
   game.currentInnings.balls = 0;
   game.lastBall = null;
+  game.activeShield = null;
   document.getElementById('ball-log-entries').innerHTML = '<div class="ball-log-empty">No balls bowled yet</div>';
   document.getElementById('commentary-area').innerHTML = '<div class="commentary-empty">Commentary will appear here</div>';
 }
 
 function endGame() {
   game.phase = 'result';
+  game.rewards = updateTrophiesAndCurrency(game.result, game.mode);
   showScreen('result', 'left');
   renderResult();
 }
@@ -1132,6 +1501,12 @@ function render() {
     kbAction.textContent = battingTeam === 'user' ? 'bat' : 'bowl';
   }
 
+  var shieldBarEl = document.getElementById('shield-bar');
+  if (shieldBarEl) {
+    var newHTML = getShieldBarHTML();
+    if (shieldBarEl.innerHTML !== newHTML) shieldBarEl.innerHTML = newHTML;
+  }
+
   updateBallButtons();
   applyToggleStates();
 }
@@ -1159,16 +1534,53 @@ function renderResult() {
     '</div>';
 
   if (game.result === 'user') {
-    heading.textContent = '🎉 YOU WIN!';
+    heading.textContent = '\u{1F389} YOU WIN!';
     triggerParticles('win');
   } else if (game.result === 'ai') {
-    heading.textContent = '😔 AI WINS!';
+    heading.textContent = '\u{1F614} AI WINS!';
   } else {
     heading.textContent = "🤝 IT'S A DRAW!";
   }
 
+  var rewardsEl = document.getElementById('result-rewards');
+  if (rewardsEl && game.rewards) {
+    var r = game.rewards;
+    var arrow = r.trophiesDelta >= 0 ? '\u25B2' : '\u25BC';
+    var trophyColor = r.trophiesDelta >= 0 ? 'reward-plus' : 'reward-minus';
+    rewardsEl.innerHTML =
+      '<div class="rewards-container">' +
+        '<div class="reward-item ' + trophyColor + '">' +
+          '<span class="reward-icon">\u{1F3C6}</span>' +
+          '<span class="reward-arrow">' + arrow + '</span>' +
+          '<span class="reward-value" id="reward-trophies">0</span>' +
+        '</div>' +
+        '<div class="reward-item reward-coin">' +
+          '<span class="reward-icon">\u{1FA99}</span>' +
+          '<span class="reward-plus-sign">+</span>' +
+          '<span class="reward-value" id="reward-currency">0</span>' +
+        '</div>' +
+      '</div>';
+    animateRewardCounter('reward-trophies', r.trophiesDelta, function () {
+      var streakEl = document.getElementById('reward-streak');
+      if (!streakEl) return;
+      var s = game.rewards.streak;
+      if (s > 0) {
+        streakEl.innerHTML = '<span class="streak-fire">🔥</span> <strong>' + s + '</strong> WIN STREAK';
+      } else if (s < 0) {
+        streakEl.innerHTML = '\u{1F494} <strong>' + Math.abs(s) + '</strong> LOSS STREAK';
+      } else {
+        streakEl.innerHTML = '\u{1F91D} NO STREAK';
+      }
+      setTimeout(function () { streakEl.classList.add('show'); }, 50);
+    });
+    animateRewardCounter('reward-currency', r.currencyDelta);
+  }
+
   if (gsapReady) {
     gsap.from('.result-team-card', { y: 30, opacity: 0, stagger: 0.15, duration: 0.4, ease: 'power2.out' });
+    if (rewardsEl && game.rewards) {
+      gsap.from('.reward-item', { y: 20, opacity: 0, stagger: 0.2, duration: 0.4, delay: 0.3, ease: 'power2.out' });
+    }
   }
 }
 
@@ -1199,6 +1611,7 @@ function resetGame() {
   game.aiTossPick = null;
   game.userRole = null;
   game.aiRole = null;
+  game.activeShield = null;
   game.innings1 = { battingTeam: null, score: 0, wickets: 0, balls: 0, target: null };
   game.innings2 = { battingTeam: null, score: 0, wickets: 0, balls: 0 };
   game.currentInnings = null;
@@ -1218,7 +1631,7 @@ if (typeof document !== 'undefined' && document.getElementById('app')) {
   document.addEventListener('keydown', handleKeyDown);
   checkGsap();
   loadUiSettings();
-  showScreen('menu');
+  showMenu();
 }
 
 if (typeof module !== 'undefined' && module.exports) {
@@ -1253,5 +1666,32 @@ if (typeof module !== 'undefined' && module.exports) {
     lastRoleIndicator: lastRoleIndicator,
     game: game,
     tossMode: tossMode,
+    getSavedTrophies: getSavedTrophies,
+    setSavedTrophies: setSavedTrophies,
+    getSavedCurrency: getSavedCurrency,
+    setSavedCurrency: setSavedCurrency,
+    getSavedStreak: getSavedStreak,
+    setSavedStreak: setSavedStreak,
+    getSavedWins: getSavedWins,
+    setSavedWins: setSavedWins,
+    getSavedLosses: getSavedLosses,
+    setSavedLosses: setSavedLosses,
+    getSavedDraws: getSavedDraws,
+    setSavedDraws: setSavedDraws,
+    updateTrophiesAndCurrency: updateTrophiesAndCurrency,
+    animateRewardCounter: animateRewardCounter,
+    animateMenuStats: animateMenuStats,
+    updateMenuRecord: updateMenuRecord,
+    getInventory: getInventory,
+    setInventory: setInventory,
+    getItemCount: getItemCount,
+    addItem: addItem,
+    useItem: useItem,
+    showShop: showShop,
+    setCachedShopItems: setCachedShopItems,
+    renderShopContent: renderShopContent,
+    buyItem: buyItem,
+    activateShield: activateShield,
+    getShieldBarHTML: getShieldBarHTML,
   };
 }

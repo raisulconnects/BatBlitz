@@ -408,6 +408,200 @@ p, .screen-desc {
   color: #445544;
 }
 
+/* Menu stats — HUD-style player card */
+.menu-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.stat-icon {
+  font-size: 1rem;
+}
+
+.stat-number {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  min-width: 36px;
+  text-align: center;
+}
+
+.stat-trophies .stat-number {
+  color: #ffd700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+.stat-currency .stat-number {
+  color: #ffaa00;
+  text-shadow: 0 0 8px rgba(255, 170, 0, 0.4);
+}
+
+.stat-label {
+  font-size: 0.48rem;
+  color: #556655;
+  letter-spacing: 1px;
+  display: none;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.stat-record-text {
+  font-size: 0.65rem;
+  color: #6a7a6a;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* Result rewards */
+.result-rewards {
+  margin-top: 0.5rem;
+  min-height: 60px;
+}
+
+.rewards-container {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0.45rem 0.8rem;
+  min-width: 110px;
+}
+
+.reward-item.reward-plus {
+  border-color: rgba(57, 255, 20, 0.25);
+}
+
+.reward-item.reward-minus {
+  border-color: rgba(255, 51, 51, 0.25);
+}
+
+.reward-item.reward-coin {
+  border-color: rgba(255, 170, 0, 0.25);
+}
+
+.reward-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+}
+
+.reward-icon {
+  font-size: 1rem;
+}
+
+.reward-label {
+  font-size: 0.4rem;
+  color: #556655;
+  letter-spacing: 1px;
+}
+
+.reward-right {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.reward-arrow,
+.reward-plus-sign {
+  font-size: 0.65rem;
+  font-weight: bold;
+}
+
+.reward-plus .reward-arrow,
+.reward-plus .reward-plus-sign {
+  color: #39ff14;
+}
+
+.reward-minus .reward-arrow {
+  color: #ff5555;
+}
+
+.reward-coin .reward-plus-sign {
+  color: #ffaa00;
+}
+
+.reward-value {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  min-width: 32px;
+  text-align: center;
+}
+
+.reward-plus .reward-value {
+  color: #39ff14;
+}
+
+.reward-minus .reward-value {
+  color: #ff5555;
+}
+
+.reward-coin .reward-value {
+  color: #ffaa00;
+}
+
+/* Counter pop animation */
+@keyframes counter-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.reward-value.counter-pop {
+  animation: counter-pop 0.35s ease-out;
+}
+
+/* Streak display */
+.reward-streak {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  color: #8a9a8a;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.reward-streak.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reward-streak .streak-fire {
+  display: inline-block;
+  animation: streak-burn 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes streak-burn {
+  from { transform: scale(0.9); }
+  to { transform: scale(1.15); }
+}
+
 /* Mode select */
 .mode-cards {
   display: flex;
@@ -659,6 +853,30 @@ p, .screen-desc {
   font-style: italic;
   color: #556655;
   text-align: center;
+}
+
+.about-changelog {
+  margin-top: 1.2rem;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #8a9a8a;
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
+}
+
+.about-changelog:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(57, 255, 20, 0.2);
+  color: #c8d6c8;
+}
+
+.about-changelog-icon {
+  margin-right: 6px;
 }
 
 /* Toss */
@@ -1707,6 +1925,206 @@ p, .screen-desc {
   border-radius: 2px;
 }
 
+/* Shop modal */
+.shop-content {
+  text-align: left;
+  max-height: 55vh;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.shop-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.shop-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.shop-content::-webkit-scrollbar-thumb {
+  background: rgba(57, 255, 20, 0.2);
+  border-radius: 2px;
+}
+
+.shop-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+}
+
+.shop-item-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.shop-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.shop-item-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  color: #c8d6c8;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.5px;
+}
+
+.shop-item-desc {
+  font-size: 0.8rem;
+  color: #556655;
+  line-height: 1.4;
+}
+
+.shop-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+
+.shop-item-price {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.5rem;
+  color: #ffaa00;
+  text-shadow: 0 0 6px rgba(255, 170, 0, 0.3);
+}
+
+.shop-item-owned {
+  font-size: 0.7rem;
+  color: #556655;
+  letter-spacing: 0.5px;
+}
+
+.shop-loading {
+  font-size: 0.9rem;
+  color: #556655;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+.shop-balance {
+  text-align: center;
+  font-size: 1rem;
+  color: #c8d6c8;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.shop-coins {
+  color: #ffaa00;
+  font-weight: bold;
+  text-shadow: 0 0 6px rgba(255, 170, 0, 0.3);
+}
+
+.shop-buy-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.45rem;
+  padding: 0.35rem 0.6rem;
+  background: rgba(57, 255, 20, 0.1);
+  color: #39ff14;
+  border: 1px solid rgba(57, 255, 20, 0.25);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  letter-spacing: 0.5px;
+  margin-top: 0.2rem;
+}
+
+.shop-buy-btn:hover {
+  background: rgba(57, 255, 20, 0.2);
+  border-color: #39ff14;
+}
+
+.shop-buy-btn:active {
+  transform: scale(0.95);
+}
+
+.shop-btn-disabled {
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: #556655 !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+/* Shield bar in play screen */
+.shield-bar-container {
+  min-height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.shield-bar {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.shield-bar.shield-active {
+  font-size: 0.85rem;
+  color: #39ff14;
+  background: rgba(57, 255, 20, 0.06);
+  border: 1px solid rgba(57, 255, 20, 0.15);
+  border-radius: 8px;
+  padding: 0.35rem 0.8rem;
+  text-shadow: 0 0 6px rgba(57, 255, 20, 0.3);
+  letter-spacing: 0.5px;
+  animation: shield-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes shield-pulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(57, 255, 20, 0.15); }
+  50% { box-shadow: 0 0 12px rgba(57, 255, 20, 0.3); }
+}
+
+.shield-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.5rem;
+  padding: 0.45rem 0.8rem;
+  background: rgba(57, 255, 20, 0.08);
+  color: #39ff14;
+  border: 1px solid rgba(57, 255, 20, 0.25);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.shield-btn:hover {
+  background: rgba(57, 255, 20, 0.15);
+  border-color: #39ff14;
+  box-shadow: 0 0 12px rgba(57, 255, 20, 0.2);
+  transform: translateY(-1px);
+}
+
+.shield-btn:active {
+  transform: scale(0.96);
+}
+
+.shield-btn-reinforced {
+  background: rgba(255, 170, 0, 0.08);
+  color: #ffaa00;
+  border-color: rgba(255, 170, 0, 0.25);
+}
+
+.shield-btn-reinforced:hover {
+  background: rgba(255, 170, 0, 0.15);
+  border-color: #ffaa00;
+  box-shadow: 0 0 12px rgba(255, 170, 0, 0.2);
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   #app {
@@ -1748,6 +2166,28 @@ p, .screen-desc {
 
   .menu-hero .subtitle {
     font-size: 1rem;
+  }
+
+  .menu-stats {
+    padding: 0.4rem 0.5rem;
+    gap: 0.3rem;
+  }
+
+  .stat-number {
+    font-size: 0.5rem;
+    min-width: 28px;
+  }
+
+  .stat-icon {
+    font-size: 0.85rem;
+  }
+
+  .stat-divider {
+    height: 16px;
+  }
+
+  .stat-record-text {
+    font-size: 0.55rem;
   }
 
   .menu-buttons {
@@ -2007,6 +2447,37 @@ p, .screen-desc {
     font-size: 1.1rem;
   }
 
+  .result-rewards {
+    margin-top: 0.4rem;
+    min-height: 50px;
+  }
+
+  .rewards-container {
+    gap: 0.5rem;
+  }
+
+  .reward-item {
+    padding: 0.35rem 0.6rem;
+    min-width: 85px;
+  }
+
+  .reward-icon {
+    font-size: 0.85rem;
+  }
+
+  .reward-label {
+    font-size: 0.35rem;
+  }
+
+  .reward-value {
+    font-size: 0.45rem;
+    min-width: 24px;
+  }
+
+  .reward-streak {
+    font-size: 0.7rem;
+  }
+
   /* Modal */
   .modal-content {
     padding: 1.25rem 1rem;
@@ -2109,6 +2580,61 @@ p, .screen-desc {
 
   .name-edit-label {
     font-size: 0.85rem;
+  }
+
+  /* Shop modal mobile */
+  .shop-item {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.55rem 0.6rem;
+  }
+
+  .shop-item-icon {
+    font-size: 1.4rem;
+  }
+
+  .shop-item-name {
+    font-size: 0.48rem;
+  }
+
+  .shop-item-desc {
+    font-size: 0.7rem;
+  }
+
+  .shop-item-price {
+    font-size: 0.45rem;
+  }
+
+  .shop-item-owned {
+    font-size: 0.6rem;
+  }
+
+  .shop-balance {
+    font-size: 0.85rem;
+  }
+
+  .shop-buy-btn {
+    font-size: 0.4rem;
+    padding: 0.3rem 0.5rem;
+  }
+
+  .shop-content {
+    max-height: 50vh;
+  }
+
+  /* Shield bar mobile */
+  .shield-bar-container {
+    min-height: 1.6rem;
+  }
+
+  .shield-btn {
+    font-size: 0.45rem;
+    padding: 0.35rem 0.6rem;
+  }
+
+  .shield-bar.shield-active {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
   }
 }
 
@@ -2253,6 +2779,16 @@ p, .screen-desc {
 
   .result-score {
     font-size: 1.4rem;
+  }
+
+  .shield-btn {
+    font-size: 0.4rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .shield-bar.shield-active {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
   }
 }
 
